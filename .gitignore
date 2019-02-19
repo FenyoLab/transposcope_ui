@@ -1,0 +1,7 @@
+/output
+/src
+/venv
+.idea/
+/test
+.tox/
+transposcope_pkg.egg-info/
