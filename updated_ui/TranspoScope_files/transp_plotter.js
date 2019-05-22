@@ -2,6 +2,7 @@
 /*global $, d3, data, console, buildTable, loadJSON*/
 
 
+//t
 //$("#data_table").click(function(){
 //      var theLink = $(this).text();
 //      alert(theLink);
@@ -18,7 +19,7 @@ function getUrlVars() {
 }
 
 if (location.search == '') {
-    window.location.replace("index.html");
+    window.location.replace("home.html");
 }
 console.log(location.search)
 var area = getUrlVars()["area"];
@@ -216,7 +217,7 @@ function mouseIn(d) {
                 "T: " + d.T + "\t(" + Math.round(d.T * 100 / d.y) + "%)<br/>" +
                 "N: " + d.N + "\t(" + Math.round(d.N * 100 / d.y) + "%)<br/>" +
                 "----------------------" + "<br/>" +
-                "x: " + d.x + ", y: " + d.y
+                "Position: " + d.x + "<br/>Total: " + d.y
 
             )
             .style("left", x(d.x) - 30 + "px")
@@ -260,7 +261,7 @@ function g_mouseInAll(d, i) {
                 "N: " + g_total(d.x, "N") + "\t(" + Math.round(g_total(d.x, "N") * 100 / y_tot) + "%)<br/>" +
                 "----------------------" + "<br/>" +
                 //                "x: " + d.x + ", y: " + d.y
-                "x: " + d.x + ", y: " + y_tot
+                "Position: " + d.x + "<br/>Total: " + y_tot
 
             )
             .style("left", x(d.x) - 30 + "px")
@@ -935,6 +936,7 @@ function zoomed() {
 }
 
 function redraw(dat) {
+    readsOn = false;
     showCoverage();
     mouseleave();
     mouseleaveEnzyme();
@@ -977,11 +979,13 @@ function redraw(dat) {
         dataPerPixel = "",
         cuts = "",
         currentDomain = x.domain();
-    enzymeCuts = dat.info.enzyme_cut_sites.split(':');
-    for (counter = 0; counter < enzymeCuts.length; counter += 1) {
-        enzymeCuts[counter] = enzymeCuts[counter].split('-');
-        if (dat.stats.complement === 1) {
-            enzymeCuts[counter][1] *= -1;
+    if (dat.info.H18_EnzmCS) {
+    enzymeCuts = dat.info.H18_EnzmCS.split(':');
+        for (counter = 0; counter < enzymeCuts.length; counter += 1) {
+            enzymeCuts[counter] = enzymeCuts[counter].split('-');
+            if (dat.stats.complement === 1) {
+                enzymeCuts[counter][1] *= -1;
+            }
         }
     }
     datas = dat;
@@ -1292,7 +1296,7 @@ function redraw(dat) {
         });
     }));
 
-
+    console.log('g_layers', g_layers);
 
 
     var layer_g = svg.select('g.rektangle').selectAll("g.layer_g")
@@ -1489,6 +1493,8 @@ function resize() {
         .attr("y", (3 * plotHeight / 4) - 5)
         .attr("width", width + 5)
 
+    svg.select("g.loader")
+        .attr("transform", "translate(" + -(width + margin.right + margin.left) + ",0)");
 
     svg.select("line.zero_line").attr("y1", 0).attr("y2", plotHeight);
     svg.select("line.chart_start").attr("y1", 0).attr("y2", plotHeight);
@@ -1503,6 +1509,9 @@ function resize() {
 
     svg.select("g.buttons").select("text.reads")
         .attr("x", width / 2 + 15);
+
+    svg.select("g.buttons").select("text.scatter")
+        .attr("x", width / 2 + 145);
 
     svg.select("g.buttons").select("rect.divisor")
         .attr("width", width + margin.left + margin.right);
@@ -1568,7 +1577,7 @@ $(document).ready(function () {
         //        // Do Something with the response e.g.
         //        //jsonresponse = JSON.parse(response);
         //        // Assuming json data is wrapped in square brackets as Drew suggests
-        buildTable(JSON.parse(response));
+        buildTable(JSON.parse(response), area, patientFolder);
         console.log(JSON.parse(response));
         $('#data_table tbody tr').click(function () {
             $('#data_table tbody tr').removeClass("factive");
@@ -1578,6 +1587,7 @@ $(document).ready(function () {
             console.log("asd");
             updateData(location.hash.substring(1));
         }
+
     }, "table_info");
 
     $(document).on("click", ".sticky-thead th", function (e) {
@@ -1585,12 +1595,16 @@ $(document).ready(function () {
         $("#header0").text("ID ◇");
         $("#header1").text("Gene ◇");
         $("#header2").text("P ◇");
-        $("#header" + $(this).index()).text($("#header" + $(this).index()).text().substr(0, $("#header" + $(this).index()).text().length - 1) + "▵");
+        $("#header" + $(this).index()).text($("#header" +
+                                              $(this).index()).text().substr(0,
+        $("#header" + $(this).index()).text().length - 1) + "△");
         var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()))
         this.asc = !this.asc;
         if (!this.asc) {
             rows = rows.reverse();
-            $("#header" + $(this).index()).text($("#header" + $(this).index()).text().substr(0, $("#header" + $(this).index()).text().length - 1) + "▿");
+            $("#header" + $(this).index()).text($("#header" +
+                                                  $(this).index()).text().substr(0,
+            $("#header" + $(this).index()).text().length - 1) + "▽");
         }
         for (var i = 0; i < rows.length; i++) {
             table.append(rows[i])
@@ -1916,7 +1930,7 @@ svg.select("g.buttons")
 svg.select("g.buttons")
     .append("text")
     .attr("class", "scatter")
-    .attr("x", width / 2 + 205)
+    .attr("x", width / 2 + 145)
     .attr("y", -30)
     .style("fill", "#455A64")
     .style("font-size", "14px")
@@ -1979,7 +1993,7 @@ svg.select("g.guide")
     .attr("width", 0)
     .attr("height", plotHeight);
 
-var readsOn = false;
+var readsOn = true;
 var trans = [];
 var scale = 0;
 
@@ -2080,4 +2094,113 @@ function showCoverage() {
         zoomed();
         //        redraw(datas);
     }
+}
+String.prototype.replaceAt=function(index, character) {
+        return this.substr(0, index) + character + this.substr(index+character.length);
+}
+function getReads() {
+    console.log('a', g_reads_sorted[0]);
+    var chars = '';
+    var lin_0 = '';
+    var lin_1 = '';
+    var lin_2 = '';
+    var lin_3 = '';
+    var lin_4 = '';
+
+    for (var i = -150; i <= 150;++i) {
+        if (i %10 == 0){
+            lin_0 += (i < 0) ? '-' : '+';
+            lin_1 += (Math.abs(i)%10);
+            lin_2 += '' + Math.floor(Math.abs(i)/10) % 10;
+            lin_3 += '' + Math.floor(Math.abs(i)/100);
+            lin_4 += i == 0 ? 'J' : '|';
+        } else {
+            lin_0 += ' ';
+            lin_1 += ' ';
+            lin_2 += ' ';
+            lin_3 += ' ';
+            if (datas.stats.ClipS <= i && i <= datas.stats.ClipE) {
+                lin_4 += 'J';
+            } else if (i%5 == 0)
+                lin_4 += ':';
+            else
+                lin_4 += '.';
+        }
+    }
+    chars += lin_0 + '\n' + lin_3 + '\n' + lin_2 + '\n' + lin_1 + '\n' + lin_4 + '\n';
+    if (datas.stats.complement) {
+        var t = '';
+        for (var i = datas.stats.sequence_g.length - 150; i < datas.stats.sequence_g.length; ++i)
+            t+= datas.stats.sequence_g[i].s;
+        for (var i = 0; i <= 150; ++i)
+            t+= datas.stats.sequence_l[i].s;
+        console.log(t);
+        t+='\n';
+        chars += t;
+    } else {
+        var t = ''
+        for (var i = datas.stats.sequence_l.length - 150; i < datas.stats.sequence_l.length; ++i)
+            t+= datas.stats.sequence_l[i].s;
+        for (var i = 0; i <= 150; ++i)
+            t+= datas.stats.sequence_g[i].s;
+        console.log(t);
+        t+='\n';
+        chars += t;
+    }
+    var base_string = '';
+    var ot= '';
+    for (var i = -150; i <= 150;++i) {
+        base_string += ' ';
+        if (i == 0)
+            ot += '|';
+        else
+            ot += '-'
+    }
+    if (datas.stats.complement) {
+        ot = ot.replaceAt(144, 'G');
+        ot = ot.replaceAt(145, 'e');
+        ot = ot.replaceAt(146, 'n');
+        ot = ot.replaceAt(147, 'o');
+        ot = ot.replaceAt(148, 'm');
+        ot = ot.replaceAt(149, 'e');
+
+        ot = ot.replaceAt(151, 'L');
+        ot = ot.replaceAt(152, 'I');
+        ot = ot.replaceAt(153, 'N');
+        ot = ot.replaceAt(154, 'E');
+        ot = ot.replaceAt(155, '-');
+        ot = ot.replaceAt(156, '1');
+    } else {
+        ot = ot.replaceAt(149, '1');
+        ot = ot.replaceAt(148, '-');
+        ot = ot.replaceAt(147, 'E');
+        ot = ot.replaceAt(146, 'N');
+        ot = ot.replaceAt(145, 'I');
+        ot = ot.replaceAt(144, 'L');
+
+        ot = ot.replaceAt(151, 'G');
+        ot = ot.replaceAt(152, 'e');
+        ot = ot.replaceAt(153, 'n');
+        ot = ot.replaceAt(154, 'o');
+        ot = ot.replaceAt(155, 'm');
+        ot = ot.replaceAt(156, 'e');
+    }
+    chars += ot +'\n';
+    base_string += '\n';
+    for (var i = 0; i < g_reads_sorted.length; ++i){
+        var t = base_string;
+        for (var j = 0;j < g_reads_sorted[i].length;++j) {
+            var cur = g_reads_sorted[i][j];
+            t = t.replaceAt(cur.x + 150, cur.l);
+        }
+        chars += t;
+
+    }
+   // $('#readsTextArea').attr('rows', g_reads_sorted.length);
+    var mw = $('#junction-modal-body').width();
+    var mh = $('#junction-modal-body').height();
+    $('#readsTextArea').css("height", mh - 15 + "");
+    $('#readsTextArea').css("width", mw - 15 +"");
+    $('#readsTextArea').val(chars);
+
 }
