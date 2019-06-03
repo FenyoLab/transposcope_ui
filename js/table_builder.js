@@ -26,7 +26,6 @@
 
 function buildTable(table) {
     "use strict";
-    console.log('table', table);
     var i = "",
         j = "",
         oldTable = "",
@@ -60,7 +59,6 @@ function buildTable(table) {
     for (i = 0; i < table.data.length; i += 1) {
         tr = document.createElement('tr');
 //        td = document.createElement('td');
-        console.log(i, table.data[i]);
         for (j = 0; j < table.data[i].length; j += 1) {
             td = document.createElement('td');
             var item = "";

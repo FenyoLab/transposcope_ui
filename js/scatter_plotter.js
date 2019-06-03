@@ -7,7 +7,7 @@ function getUrlVars() {
 }
 
 if (location.search == '') {
-	window.location.replace("index.html");
+	window.location.replace("home.html");
 }
 console.log(location.search)
 var area = getUrlVars()["area"];
