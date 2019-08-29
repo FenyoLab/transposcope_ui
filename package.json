@@ -12,6 +12,7 @@
     "@gmod/indexedfasta": "^1.0.13",
     "axios": "^0.19.0",
     "core-js": "^2.6.5",
+    "d3": "^5.11.0",
     "generic-filehandle": "^2.0.0",
     "lodash": "^4.17.15",
     "vue": "^2.6.10"
@@ -28,21 +29,20 @@
   },
   "xo": {
     "extends": "xo-vue",
-    "extensions": ["js", "vue"]
+    "extensions": [
+      "js",
+      "vue"
+    ]
   },
   "eslintConfig": {
     "extends": [
-      "xo",
-      "xo-vue/space"
+      "plugin:vue/essential",
+      "eslint:recommended"
     ],
     "root": true,
     "env": {
       "node": true
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
     "rules": {
       "no-console": 1
     },

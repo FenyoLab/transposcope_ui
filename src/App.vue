@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="overflow-x: scroll; height: 85vh">
+  <div id="app">
     <div>Reads</div>
     <Visualization></Visualization>
   </div>
@@ -24,6 +24,9 @@ export default {
 
 <style>
 #app {
+  /*TODO fix this 76px offset*/
+  min-height: calc(100vh - 76px);
+  background-color: rgb(255, 245, 245);
   font-family: "Monaco", courier, monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
