@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      data: [5, 5, 5],
+      data: [],
       index_start: 1,
       // index_start: 699,
       // index_end: 700,

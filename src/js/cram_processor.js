@@ -17,7 +17,12 @@ export async function loadCramRecords(indexedFile, start, end) {
         });
       })
       .value();
-    return histogram;
+    return _.map(histogram, (d, i) => {
+      return {
+        x: i,
+        y: d
+      };
+    });
   }
 }
 
