@@ -3,9 +3,21 @@
     <svg @mousemove="mouseover" :width="width" :height="height">
       <!--<svg :width="width" :height="height">-->
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
-        <path class="line" :d="paths.line" />
-        <path class="area" :d="paths.area" />
-        <path class="selector" :d="paths.selector" />
+        <g
+          :style="{
+            transform: `translate(${transform.x}px, ${
+              transform.y
+            }px) scaleX(${scaleFactor})`
+          }"
+        >
+          <path class="line" :d="paths.line" />
+          <path class="area-ggn" :d="paths.area.ggn" />
+          <path class="area-gng" :d="paths.area.gng" />
+          <path class="area-ngg" :d="paths.area.ngg" />
+          <path class="area-gjn" :d="paths.area.gjn" />
+          <path class="area-gln" :d="paths.area.gln" />
+          <path class="selector" :d="paths.selector" />
+        </g>
       </g>
     </svg>
   </div>
@@ -34,7 +46,7 @@ export default {
       height: 0,
       paths: {
         line: "",
-        area: "",
+        area: { ggn: "", gng: "", ngg: "", gjn: "", gln: "" },
         selector: ""
       },
       lastHoverPoint: {},
@@ -43,11 +55,18 @@ export default {
         x2: null,
         y: null
       },
+      transform: {
+        x: 0,
+        y: 0
+      },
       points: [],
+      stacks: [],
+      filterdStacks: [],
       selections: {
         svg: null
       },
-      zoom: null
+      zoom: null,
+      scaleFactor: 1
     };
   },
   computed: {
@@ -67,9 +86,9 @@ export default {
 
     this.zoom = d3
       .zoom()
-      .scaleExtent([1, Infinity])
-      .translateExtent([[0, 0], [this.width, this.height]])
-      .extent([[0, 0], [this.width, this.height]])
+      .scaleExtent([1, 50])
+      .translateExtent([[0, 0], [this.width, 0]])
+      .extent([[0, 0], [this.width, 0]])
       .on("zoom", this.zoomed);
 
     svg.call(this.zoom);
@@ -97,18 +116,23 @@ export default {
       let area = d3
         .area()
         .curve(d3.curveStep)
-        .x(d => this.scaled.x(d.x))
-        .y0(() => this.height)
-        .y1(d => this.scaled.y(d.y));
+        .x(d => this.scaled.x(d.data.key))
+        .y0(d => this.scaled.y(d[0]))
+        .y1(d => this.scaled.y(d[1]));
       return area(points);
     },
-    createValueSelector(points) {
+    createValueSelector(point) {
+      let points = [
+        { y: point[0].total, x: point[0].key - 0.5 },
+        { y: point[0].total, x: point[0].key + 0.5 }
+      ];
+      console.log(point);
       let tmp = d3
         .area()
-        .x(d => this.scaled.x(d.x))
-        .y0(() => this.height)
-        .y1(d => this.scaled.y(d.y));
-      return tmp(points);
+        .x(d => this.scaled.x(d.key))
+        .y0(() => this.padded.height)
+        .y1(d => this.scaled.y(d.total));
+      return tmp(point);
     },
     onResize() {
       this.width = this.$el.offsetWidth;
@@ -123,40 +147,67 @@ export default {
       this.scaled.x.domain(d3.extent(this.data, (d, i) => i));
       this.scaled.x2.domain(this.scaled.x.domain());
       // TODO: The max/min etc should be passed as props
-      this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.y))]);
+      this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
+      this.stacks = d3
+        .stack()
+        .keys([0, 1, 2, 3, 4])
+        .value(function(d, key) {
+          return d.classes[key].total;
+        })(this.data);
+      //  this.filterdStacks = _.map(this.stacks, d =>
+      //    _.filter(d, (v, i) => {
+      //      return i % Math.floor(50 / this.scaleFactor) == 0;
+      //    })
+      //  );
     },
     update() {
-      this.points = _.chain(this.data)
-        .slice(this.scaled.x.domain()[0], this.scaled.x.domain()[1])
-        .value();
-      this.paths.line = this.createLine(this.points);
-      this.paths.area = this.createArea(this.points);
+      this.points = this.stacks;
+      //this.paths.line = this.createLine(this.points);
+      this.paths.area.ggn = this.createArea(this.points[0]);
+      this.paths.area.ngg = this.createArea(this.points[1]);
+      this.paths.area.gng = this.createArea(this.points[2]);
+      this.paths.area.gjn = this.createArea(this.points[3]);
+      this.paths.area.gln = this.createArea(this.points[4]);
     },
     mouseover({ offsetX }) {
-      if (this.points.length > 0) {
-        const x = this.scaled.x.invert(offsetX - this.margin.left);
+      if (this.data.length > 0) {
+        const x = this.scaled.x.invert(
+          (offsetX - this.margin.left - this.transform.x) / this.scaleFactor
+        );
         const closestPoint = this.getClosestPoint(x);
         if (this.lastHoverPoint.index !== closestPoint.index) {
-          const point = this.points[closestPoint.index];
+          const point = this.data[closestPoint.index];
           this.paths.selector = this.createValueSelector([point]);
           this.lastHoverPoint = closestPoint;
         }
       }
     },
     getClosestPoint(x) {
-      return this.points
+      return this.data
         .map((point, index) => ({
-          x: point.x,
-          diff: Math.abs(point.x - x),
+          x: point.key,
+          diff: Math.abs(point.key - x),
           index
         }))
         .reduce((memo, val) => (memo.diff < val.diff ? memo : val));
     },
     zoomed() {
-      this.scaled.x.domain(
-        d3.event.transform.rescaleX(this.scaled.x2).domain()
-      );
-      this.update();
+      // TODO: on pans the area should not be redrawn, just translated
+      // this.scaled.x.domain(
+      //   d3.event.transform.rescaleX(this.scaled.x2).domain()
+      // );
+      this.transform.x = d3.event.transform.x;
+      this.transform.y = d3.event.transform.y;
+      this.scaleFactor = d3.event.transform.k;
+      //if (this.scaleFactor !== d3.event.transform.k) {
+      //   this.scaleFactor = d3.event.transform.k;
+      //    this.filterdStacks = _.map(this.stacks, d =>
+      //      _.filter(d, (v, i) => {
+      //        return i % Math.floor(50 / this.scaleFactor) == 0;
+      //      })
+      //    );
+      //this.update();
+      // }
     }
   }
 };
@@ -168,12 +219,24 @@ export default {
   stroke-width: 3px;
   fill: none;
 }
-.area {
-  fill: #76bf8a;
+.area-ggn {
+  fill: #22ff22;
+}
+.area-ngg {
+  fill: #2222ff;
+}
+.area-gng {
+  fill: #ff2222;
+}
+.area-gjn {
+  fill: #fc8803;
+}
+.area-gln {
+  fill: #b707e3;
 }
 .line {
   stroke: #4f7f5c;
-  stroke-width: 1px;
+  stroke-width: 0.25px;
   fill: none;
 }
 </style>
