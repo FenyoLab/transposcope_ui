@@ -83,8 +83,8 @@ export async function loadCramRecords(indexedFile, start, end) {
         key: i,
         classes: [
           { total: 0, name: "ggn" },
-          { total: 0, name: "ggn" },
           { total: 0, name: "ngg" },
+          { total: 0, name: "gng" },
           { total: 0, name: "gjn" },
           { total: 0, name: "gln" }
         ]

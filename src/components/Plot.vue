@@ -11,12 +11,12 @@
           }"
         >
           <path class="line" :d="paths.line" />
-          <path class="area-ggn" :d="paths.area.ggn" />
-          <path class="area-gng" :d="paths.area.gng" />
-          <path class="area-ngg" :d="paths.area.ngg" />
-          <path class="area-gjn" :d="paths.area.gjn" />
-          <path class="area-gln" :d="paths.area.gln" />
-          <path class="selector" :d="paths.selector" />
+          <path
+            v-for="orientation in orientations"
+            v-bind:key="orientation"
+            v-bind:class="'area-' + orientation"
+            v-bind:d="paths.area[orientation]"
+          />
         </g>
       </g>
     </svg>
@@ -65,6 +65,7 @@ export default {
       selections: {
         svg: null
       },
+      orientations: [],
       zoom: null,
       scaleFactor: 1
     };
@@ -126,7 +127,6 @@ export default {
         { y: point[0].total, x: point[0].key - 0.5 },
         { y: point[0].total, x: point[0].key + 0.5 }
       ];
-      console.log(point);
       let tmp = d3
         .area()
         .x(d => this.scaled.x(d.key))
@@ -148,26 +148,25 @@ export default {
       this.scaled.x2.domain(this.scaled.x.domain());
       // TODO: The max/min etc should be passed as props
       this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
+      if (this.data.length > 0)
+        this.orientations = _.map(this.data[0].classes, d => d.name);
       this.stacks = d3
         .stack()
-        .keys([0, 1, 2, 3, 4])
+        .keys(_.map(this.orientations, (d, i) => i))
         .value(function(d, key) {
           return d.classes[key].total;
         })(this.data);
-      //  this.filterdStacks = _.map(this.stacks, d =>
-      //    _.filter(d, (v, i) => {
-      //      return i % Math.floor(50 / this.scaleFactor) == 0;
-      //    })
-      //  );
+      this.paths.area = {};
+      _.forEach(this.orientations, d => {
+        this.paths.area[d] = "";
+      });
     },
     update() {
       this.points = this.stacks;
       //this.paths.line = this.createLine(this.points);
-      this.paths.area.ggn = this.createArea(this.points[0]);
-      this.paths.area.ngg = this.createArea(this.points[1]);
-      this.paths.area.gng = this.createArea(this.points[2]);
-      this.paths.area.gjn = this.createArea(this.points[3]);
-      this.paths.area.gln = this.createArea(this.points[4]);
+      _.forEach(this.orientations, (d, i) => {
+        this.paths.area[d] = this.createArea(this.points[i]);
+      });
     },
     mouseover({ offsetX }) {
       if (this.data.length > 0) {
