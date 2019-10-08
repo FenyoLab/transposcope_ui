@@ -1,7 +1,9 @@
 <template>
   <div id="plot" style="height: 80vh">
     <svg @mousemove="mouseover" :width="width" :height="height">
-      <!--<svg :width="width" :height="height">-->
+      <g class="axis axis--x"></g>
+      <g class="axis axis--y"></g>
+      <g class="bases"></g>
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g
           :style="{
@@ -55,6 +57,10 @@ export default {
         x2: null,
         y: null
       },
+      axis: {
+        x: null,
+        y: null
+      },
       transform: {
         x: 0,
         y: 0
@@ -63,11 +69,16 @@ export default {
       stacks: [],
       filterdStacks: [],
       selections: {
-        svg: null
+        svg: null,
+        gx: null,
+        gy: null
       },
       orientations: [],
       zoom: null,
-      scaleFactor: 1
+      scaleFactor: 1,
+      sequence: Array.from({ length: 4999 }, () =>
+        Math.floor(Math.random() * 4)
+      )
     };
   },
   computed: {
@@ -78,21 +89,8 @@ export default {
     }
   },
   mounted() {
-    window.addEventListener("resize", this.onResize);
     this.onResize();
     this.initialize();
-
-    this.selections.svg = d3.select(this.$el.querySelector("svg"));
-    const svg = this.selections.svg;
-
-    this.zoom = d3
-      .zoom()
-      .scaleExtent([1, 50])
-      .translateExtent([[0, 0], [this.width, 0]])
-      .extent([[0, 0], [this.width, 0]])
-      .on("zoom", this.zoomed);
-
-    svg.call(this.zoom);
   },
   watch: {
     width: function widthChanged() {
@@ -139,13 +137,19 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
+      window.addEventListener("resize", this.onResize);
+      this.selections.svg = d3.select(this.$el.querySelector("svg"));
+
+      this.selections.gx = this.selections.svg.select(".axis--x");
+      this.selections.gy = this.selections.svg.select(".axis--y");
+
       this.scaled.x = d3.scaleLinear().range([0, this.padded.width]);
       this.scaled.x2 = d3.scaleLinear().range([0, this.padded.width]);
       this.scaled.y = d3.scaleLinear().range([this.padded.height, 0]);
-      d3.axisLeft().scale(this.scaled.x);
-      d3.axisBottom().scale(this.scaled.y);
+
       this.scaled.x.domain(d3.extent(this.data, (d, i) => i));
       this.scaled.x2.domain(this.scaled.x.domain());
+
       // TODO: The max/min etc should be passed as props
       this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
       if (this.data.length > 0)
@@ -160,6 +164,41 @@ export default {
       _.forEach(this.orientations, d => {
         this.paths.area[d] = "";
       });
+
+      this.axis.x = d3
+        .axisTop()
+        .scale(this.scaled.x)
+        .ticks((this.width / 2 / (this.height + 2)) * 10)
+        .tickSize(-this.height)
+        .tickPadding(5 - this.height);
+      this.axis.y = d3
+        .axisRight()
+        .scale(this.scaled.y)
+        .ticks(10)
+        .tickSize(this.width)
+        .tickPadding(8 - this.width);
+
+      // FIXME: Every initialize adds new axis
+
+      if (this.selections.svg) {
+        this.selections.gx.call(this.axis.x);
+        this.selections.gy.call(this.axis.y);
+      }
+
+      const pixelsPerBase = 10;
+
+      const maxScaleFactor =
+        (pixelsPerBase / this.width) *
+        Math.abs(this.scaled.x.domain()[1] - this.scaled.x.domain()[0]);
+
+      this.zoom = d3
+        .zoom()
+        .scaleExtent([1, maxScaleFactor])
+        .translateExtent([[0, 0], [this.width, 0]])
+        .extent([[0, 0], [this.width, 0]])
+        .on("zoom", this.zoomed);
+
+      this.selections.svg.call(this.zoom);
     },
     update() {
       this.points = this.stacks;
@@ -191,22 +230,41 @@ export default {
         .reduce((memo, val) => (memo.diff < val.diff ? memo : val));
     },
     zoomed() {
-      // TODO: on pans the area should not be redrawn, just translated
-      // this.scaled.x.domain(
-      //   d3.event.transform.rescaleX(this.scaled.x2).domain()
-      // );
       this.transform.x = d3.event.transform.x;
       this.transform.y = d3.event.transform.y;
       this.scaleFactor = d3.event.transform.k;
-      //if (this.scaleFactor !== d3.event.transform.k) {
-      //   this.scaleFactor = d3.event.transform.k;
-      //    this.filterdStacks = _.map(this.stacks, d =>
-      //      _.filter(d, (v, i) => {
-      //        return i % Math.floor(50 / this.scaleFactor) == 0;
-      //      })
-      //    );
-      //this.update();
-      // }
+
+      this.selections.gx.call(
+        this.axis.x.scale(d3.event.transform.rescaleX(this.scaled.x))
+      );
+
+      const currentScale = d3.event.transform.rescaleX(this.scaled.x);
+      const dom = currentScale.domain();
+      const mapping = ["red", "orange", "green", "blue"];
+      console.log(dom);
+
+      if (this.scaleFactor > 35) {
+        let rects = this.selections.svg
+          .select(".bases")
+          .selectAll("rect")
+          .data(_.slice(this.sequence, Math.floor(dom[0]), Math.floor(dom[1])));
+
+        rects
+          .enter()
+          .append("rect")
+          .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
+          .attr("height", this.scaled.y(500))
+          .attr("width", currentScale(1) - currentScale(0))
+          .style("fill", d => mapping[d]);
+
+        rects
+          .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
+          .attr("height", this.scaled.y(500))
+          .attr("width", currentScale(1) - currentScale(0))
+          .style("fill", d => mapping[d]);
+
+        rects.exit().remove();
+      }
     }
   }
 };
