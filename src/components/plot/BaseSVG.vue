@@ -1,8 +1,6 @@
 <template>
   <div id="plot" style="height: 80vh">
     <svg @mousemove="mouseover" :width="width" :height="height">
-      <g class="axis axis--x"></g>
-      <g class="axis axis--y"></g>
       <g class="bases"></g>
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g
@@ -21,6 +19,8 @@
           />
         </g>
       </g>
+      <g class="axis axis--x"></g>
+      <g class="axis axis--y"></g>
     </svg>
   </div>
 </template>
@@ -35,10 +35,10 @@ export default {
     margin: {
       type: Object,
       default: () => ({
-        left: 0,
+        left: 20,
         right: 0,
         top: 10,
-        bottom: 10
+        bottom: 20
       })
     }
   },
@@ -48,7 +48,7 @@ export default {
       height: 0,
       paths: {
         line: "",
-        area: { ggn: "", gng: "", ngg: "", gjn: "", gln: "" },
+        area: { gg: "", g_g: "", gj: "", gl_l: "", gl_g: "" },
         selector: ""
       },
       lastHoverPoint: {},
@@ -76,6 +76,7 @@ export default {
       orientations: [],
       zoom: null,
       scaleFactor: 1,
+      baseFactor: 100,
       sequence: Array.from({ length: 4999 }, () =>
         Math.floor(Math.random() * 4)
       )
@@ -89,11 +90,16 @@ export default {
     }
   },
   mounted() {
+    window.addEventListener("resize", this.onResize);
     this.onResize();
     this.initialize();
   },
   watch: {
     width: function widthChanged() {
+      this.initialize();
+      this.update();
+    },
+    height: function heightChanged() {
       this.initialize();
       this.update();
     },
@@ -130,14 +136,13 @@ export default {
         .x(d => this.scaled.x(d.key))
         .y0(() => this.padded.height)
         .y1(d => this.scaled.y(d.total));
-      return tmp(point);
+      return tmp(points);
     },
     onResize() {
       this.width = this.$el.offsetWidth;
       this.height = this.$el.offsetHeight;
     },
     initialize() {
-      window.addEventListener("resize", this.onResize);
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.gx = this.selections.svg.select(".axis--x");
@@ -154,9 +159,10 @@ export default {
       this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
       if (this.data.length > 0)
         this.orientations = _.map(this.data[0].classes, d => d.name);
+
       this.stacks = d3
         .stack()
-        .keys(_.map(this.orientations, (d, i) => i))
+        .keys(this.orientations)
         .value(function(d, key) {
           return d.classes[key].total;
         })(this.data);
@@ -168,17 +174,16 @@ export default {
       this.axis.x = d3
         .axisTop()
         .scale(this.scaled.x)
-        .ticks((this.width / 2 / (this.height + 2)) * 10)
-        .tickSize(-this.height)
-        .tickPadding(5 - this.height);
+        .ticks((this.padded.width / 1000) * 5)
+        .tickSize(-this.padded.height)
+        .tickPadding(5 - this.padded.height);
       this.axis.y = d3
-        .axisRight()
+        .axisLeft()
         .scale(this.scaled.y)
         .ticks(10)
-        .tickSize(this.width)
-        .tickPadding(8 - this.width);
-
-      // FIXME: Every initialize adds new axis
+        .tickSizeInner(-100)
+        .tickSizeOuter(-50)
+        .tickPadding(-this.margin.left);
 
       if (this.selections.svg) {
         this.selections.gx.call(this.axis.x);
@@ -189,6 +194,10 @@ export default {
 
       const maxScaleFactor =
         (pixelsPerBase / this.width) *
+        Math.abs(this.scaled.x.domain()[1] - this.scaled.x.domain()[0]);
+
+      this.baseFactor =
+        (2 / this.width) *
         Math.abs(this.scaled.x.domain()[1] - this.scaled.x.domain()[0]);
 
       this.zoom = d3
@@ -241,30 +250,30 @@ export default {
       const currentScale = d3.event.transform.rescaleX(this.scaled.x);
       const dom = currentScale.domain();
       const mapping = ["red", "orange", "green", "blue"];
-      console.log(dom);
-
-      if (this.scaleFactor > 35) {
-        let rects = this.selections.svg
-          .select(".bases")
-          .selectAll("rect")
-          .data(_.slice(this.sequence, Math.floor(dom[0]), Math.floor(dom[1])));
-
-        rects
-          .enter()
-          .append("rect")
-          .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-          .attr("height", this.scaled.y(500))
-          .attr("width", currentScale(1) - currentScale(0))
-          .style("fill", d => mapping[d]);
-
-        rects
-          .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-          .attr("height", this.scaled.y(500))
-          .attr("width", currentScale(1) - currentScale(0))
-          .style("fill", d => mapping[d]);
-
-        rects.exit().remove();
+      let bases = [];
+      if (this.scaleFactor > this.baseFactor) {
+        bases = _.slice(this.sequence, Math.floor(dom[0]), Math.floor(dom[1]));
       }
+      let rects = this.selections.svg
+        .select(".bases")
+        .selectAll("rect")
+        .data(bases);
+
+      rects
+        .enter()
+        .append("rect")
+        .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
+        .attr("height", this.scaled.y(500))
+        .attr("width", currentScale(1) - currentScale(0))
+        .style("fill", d => mapping[d]);
+
+      rects
+        .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(dom[0])))
+        .attr("height", this.scaled.y(500))
+        .attr("width", currentScale(1) - currentScale(0))
+        .style("fill", d => mapping[d]);
+
+      rects.exit().remove();
     }
   }
 };
@@ -276,24 +285,48 @@ export default {
   stroke-width: 3px;
   fill: none;
 }
-.area-ggn {
-  fill: #22ff22;
+.area-gg {
+  fill: #999999;
 }
-.area-ngg {
-  fill: #2222ff;
+.area-gn {
+  fill: #888800;
 }
-.area-gng {
+.area-g_g {
   fill: #ff2222;
 }
-.area-gjn {
+.area-g_jG {
+  fill: #AA0000;
+}
+.area-g_jJ {
+  fill: #42f5e6;
+}
+.area-gjG {
+  fill: #bf9360;
+}
+.area-gjJ {
   fill: #fc8803;
 }
-.area-gln {
+.area-glL {
   fill: #b707e3;
+}
+.area-glG {
+  fill: #3399cc;
 }
 .line {
   stroke: #4f7f5c;
   stroke-width: 0.25px;
   fill: none;
+}
+
+.axis line {
+  stroke: #888888;
+  opacity: 0.2;
+  /* stroke-width: 0.25px;
+  fill: none;*/
+}
+
+.axis .domain {
+  stroke: #ff0000;
+  opacity: 0.2;
 }
 </style>

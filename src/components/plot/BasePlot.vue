@@ -8,12 +8,12 @@
 // const axios = require("axios");
 const { RemoteFile } = require("generic-filehandle");
 const { IndexedCramFile, CraiIndex } = require("@gmod/cram");
-const { loadCramRecords } = require("../js/cram_processor.js");
+const { loadCramRecords } = require("../../js/cram_processor.js");
 //Use indexedfasta library for seqFetch, if using local file (see below)
 // TODO: Update this to use a zipped FA
 const { IndexedFasta } = require("@gmod/indexedfasta");
 
-import Plot from "./Plot.vue";
+import Plot from "./BaseSVG.vue";
 
 export default {
   name: "Visualization",

@@ -7,7 +7,7 @@
 
 <script>
 /* eslint-disable */
-import Visualization from "./components/Visualization.vue";
+import Visualization from "./components/plot/BasePlot.vue";
 const _ = require("lodash");
 const axios = require("axios");
 const { LocalFile, RemoteFile } = require("generic-filehandle");
