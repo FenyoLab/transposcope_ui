@@ -14,13 +14,33 @@
           <path
             v-for="orientation in orientations"
             v-bind:key="orientation"
-            v-bind:class="'area-' + orientation"
             v-bind:d="paths.area[orientation]"
+            v-bind:style="'fill:' + fills[orientation]"
           />
         </g>
       </g>
       <g class="axis axis--x"></g>
       <g class="axis axis--y"></g>
+      <pattern
+        id="PgjG"
+        v-bind:x="0"
+        v-bind:width="5 / scaleFactor"
+        v-bind:height="5 / scaleFactor"
+        patternUnits="userSpaceOnUse"
+        v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
+      >
+        <rect x="0" width="5" height="5" y="0" fill="#fc8803" />
+        <path
+          stroke="white"
+          v-bind:stroke-width="0.5 / scaleFactor"
+          v-bind:d="'M 0, ' + 5 / scaleFactor + ' L ' + 5 / scaleFactor + ',0'"
+        />
+        <!--<circle-->
+        <!--  v-bind:cx="4 / scaleFactor"-->
+        <!--  v-bind:cy="4 / scaleFactor"-->
+        <!--  v-bind:r="4 / scaleFactor"-->
+        <!--/>-->
+      </pattern>
     </svg>
   </div>
 </template>
@@ -53,7 +73,7 @@ export default {
       },
       lastHoverPoint: {},
       scaled: {
-        x: null,
+        x: d3.scaleLinear().range([0, 0]),
         x2: null,
         y: null
       },
@@ -79,7 +99,18 @@ export default {
       baseFactor: 100,
       sequence: Array.from({ length: 4999 }, () =>
         Math.floor(Math.random() * 4)
-      )
+      ),
+      fills: {
+        gg: "#999999",
+        gn: "#888800",
+        g_g: "#ff2222",
+        g_jG: "#aa0000",
+        g_jJ: "#42f5e6",
+        gjG: "url(#PgjG)",
+        gjJ: "#fc8803",
+        glL: "#b707e3",
+        glG: "#3399cc"
+      }
     };
   },
   computed: {
@@ -159,9 +190,11 @@ export default {
       this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
       if (this.data.length > 0)
         this.orientations = _.map(this.data[0].classes, d => d.name);
+      //this.orientations = ["gjG", "gjJ", "glG", "glL", "gg"];
 
       this.stacks = d3
         .stack()
+        .order(d3.stackOrderInsideOut)
         .keys(this.orientations)
         .value(function(d, key) {
           return d.classes[key].total;
@@ -284,33 +317,6 @@ export default {
   stroke: #28402e;
   stroke-width: 3px;
   fill: none;
-}
-.area-gg {
-  fill: #999999;
-}
-.area-gn {
-  fill: #888800;
-}
-.area-g_g {
-  fill: #ff2222;
-}
-.area-g_jG {
-  fill: #AA0000;
-}
-.area-g_jJ {
-  fill: #42f5e6;
-}
-.area-gjG {
-  fill: #bf9360;
-}
-.area-gjJ {
-  fill: #fc8803;
-}
-.area-glL {
-  fill: #b707e3;
-}
-.area-glG {
-  fill: #3399cc;
 }
 .line {
   stroke: #4f7f5c;

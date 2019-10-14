@@ -112,59 +112,6 @@ function classifyResults(reads) {
   ];
   if (type === ["unmapped", "unmapped"]) console.log("double unmapped");
 
-  //console.log(r1Type + "|" + r2Type, type);
-  //if (r1Type == "G5" && r2Type == "G5") {
-  //  type = ["gg", "gg"];
-  //} else if (r1Type == "G3" && r2Type == "G3") {
-  //  type = ["gg", "gg"];
-  //} else if (r1Type == "G5" && r2Type == "G3") {
-  //  type = ["g_g", "g_g"];
-  //} else if (r1Type == "J5" && r2Type == "J5") {
-  //  type = ["jj", "jj"];
-  //} else if (r1Type == "J3" && r2Type == "J3") {
-  //  type = ["jj", "jj"];
-  //} else if (r1Type == "L" && r2Type == "L") {
-  //  type = ["ll", "ll"];
-  //} else if (r1Type == "G5" && r2Type == "L") {
-  //  type = ["gl_g", "gl_l"];
-  //} else if (r1Type == "L" && r2Type == "G3") {
-  //  type = ["gl_l", "gl_g"];
-  //} else if (r1Type == "G5" && r2Type == "J5") {
-  //  type = ["gj_g", "gj_j"];
-  //} else if (r1Type == "J3" && r2Type == "G3") {
-  //  type = ["gj_j", "gj_g"];
-  //} else if (r1Type == "G5" && r2Type == "J3") {
-  //  type = ["g_j_g", "g_j_j"];
-  //} else if (r1Type == "J5" && r2Type == "G3") {
-  //  type = ["g_j_j", "g_j_g"];
-  //} else if (r1Type == "G5" && r2Type == "JS") {
-  //  type = ["g_j_g", "g_j_j"];
-  //} else if (r1Type == "JS" && r2Type == "G3") {
-  //  type = ["g_j_j", "g_j_g"];
-  //} else if (r1Type == undefined && r2Type == "G5") {
-  //  type = [undefined, "gn"];
-  //} else if (r1Type == "G5" && r2Type == undefined) {
-  //  type = ["gn", undefined];
-  //} else if (r1Type == undefined && r2Type == "G3") {
-  //  type = [undefined, "gn"];
-  //} else if (r1Type == "G3" && r2Type == undefined) {
-  //  type = ["gn", undefined];
-  //} else if (r1Type == undefined && r2Type == "J5") {
-  //  type = [undefined, "jn"];
-  //} else if (r1Type == "J5" && r2Type == undefined) {
-  //  type = ["jn", undefined];
-  //} else if (r1Type == undefined && r2Type == "J3") {
-  //  type = [undefined, "jn"];
-  //} else if (r1Type == "J3" && r2Type == undefined) {
-  //  type = ["jn", undefined];
-  //} else if (r1Type == undefined && r2Type == "L") {
-  //  type = [undefined, "ln"];
-  //} else if (r1Type == "L" && r2Type == undefined) {
-  //  type = ["ln", undefined];
-  //} else {
-  //  console.log(r1Type, r2Type);
-  //}
-
   return type;
 }
 
