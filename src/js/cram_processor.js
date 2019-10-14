@@ -20,12 +20,10 @@ function buildRead(read) {
           bases = bases.slice(rf.pos - 1 + rf.data.length);
         } else {
           readEnd += rf.data.length;
-          bases = bases.slice(rf.pos - 1);
+          bases = bases.slice(0, rf.pos - 1);
         }
       } else if (rf.code === "X") {
-        // This is more for coloring differences
-        //console.log(rf);
-        //console.log(bases.charAt(rf.pos - 1));
+        // These changes have already been made in getReadBases
       } else if (rf.code === "D") {
         bases =
           bases.slice(0, rf.pos - 1) +
@@ -80,7 +78,7 @@ const orientationMappings = {
   "J5|G5": ["gjJ", "gjG"],
   "J5|J5": ["jj", "jj"],
   "J5|L": ["jlJ", "jlL"],
-  "J5|J3": ["j_j5", "j_j3"],
+  "J5|J3": ["j_j", "j_j"],
   "J5|G3": ["g_jJ", "g_jG"],
   "J5|unmapped": ["jn", "unmapped"],
   "L|G5": ["glL", "glG"],
@@ -90,7 +88,7 @@ const orientationMappings = {
   "L|G3": ["glL", "glG"],
   "L|unmapped": ["ln", "unmapped"],
   "J3|G5": ["g_jJ", "g_jG"],
-  "J3|J5": ["j_j3", "j_j5"],
+  "J3|J5": ["j_j", "j_j"],
   "J3|L": ["jlJ", "jlL"],
   "J3|J3": ["jj", "jj"],
   "J3|G3": ["gjJ", "gjG"],
@@ -131,74 +129,23 @@ export async function loadCramRecords(indexedFile, start, end) {
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
         key: i,
         classes: {
-          gg: {
-            total: 0,
-            name: "gg"
-          },
-          jj: {
-            total: 0,
-            name: "jj"
-          },
-          ll: {
-            total: 0,
-            name: "ll"
-          },
-          gn: {
-            total: 0,
-            name: "gn"
-          },
-          jn: {
-            total: 0,
-            name: "jn"
-          },
-          ln: {
-            total: 0,
-            name: "ln"
-          },
-          g_g: {
-            total: 0,
-            name: "g_g"
-          },
-          g_jG: {
-            total: 0,
-            name: "g_jG"
-          },
-          g_jJ: {
-            total: 0,
-            name: "g_jJ"
-          },
-          gjG: {
-            total: 0,
-            name: "gjG"
-          },
-          gjJ: {
-            total: 0,
-            name: "gjJ"
-          },
-          glL: {
-            total: 0,
-            name: "glL"
-          },
-          glG: {
-            total: 0,
-            name: "glG"
-          },
-          jlJ: {
-            total: 0,
-            name: "jlJ"
-          },
-          jlL: {
-            total: 0,
-            name: "jlL"
-          },
-          j_j5: {
-            total: 0,
-            name: "j_j5"
-          },
-          j_j3: {
-            total: 0,
-            name: "j_j3"
-          }
+          gg: 0,
+          jj: 0,
+          ll: 0,
+          gn: 0,
+          jn: 0,
+          ln: 0,
+          g_g: 0,
+          g_jG: 0,
+          g_jJ: 0,
+          gjG: 0,
+          gjJ: 0,
+          glL: 0,
+          glG: 0,
+          jlJ: 0,
+          jlL: 0,
+          j_j5: 0,
+          j_j3: 0
         }
       };
     });
@@ -222,9 +169,7 @@ export async function loadCramRecords(indexedFile, start, end) {
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
-                histogram[result.aStart + index].classes[
-                  orientation
-                ].total += 1;
+                histogram[result.aStart + index].classes[orientation] += 1;
               }
 
               histogram[result.aStart + index].bpStat[base] += 1;
@@ -239,9 +184,7 @@ export async function loadCramRecords(indexedFile, start, end) {
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
-                histogram[result.aStart + index].classes[
-                  orientation
-                ].total += 1;
+                histogram[result.aStart + index].classes[orientation] += 1;
               }
 
               histogram[result.aStart + index].bpStat[base] += 1;
@@ -308,21 +251,6 @@ export async function processCram(indexedFile, start, end) {
           }
           bases = bases.slice(0, rf.pos - 1);
         });
-      }
-      if (
-        record.readName === "SRR622457.1303818473" ||
-        record.readName === "SRR622457.1303817919"
-      ) {
-        //console.log("mate", record.readName, record.isRead1(), record.mate);
-        console.log(record);
-        //console.log(
-        //  record.readName,
-        //  record.isSegmentUnmapped(),
-        //  record.isMateUnmapped(),
-        //  record.isPaired(),
-        //  record.isFailedQc(),
-        //  record.isDetached()
-        //);
       }
       let padding = ".".repeat(record.alignmentStart - clipping_offset + 100);
       result_string = padding + bases + result_string;

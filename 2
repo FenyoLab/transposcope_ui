@@ -21,7 +21,6 @@
     >
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g class="bases"></g>
-
         <g
           :style="{
             transform: `translate(${transform.x}px, ${
@@ -42,7 +41,6 @@
 
         <g class="axis axis--x"></g>
         <g class="axis axis--y"></g>
-        <g class="snpbases"></g>
       </g>
 
       <pattern
@@ -195,7 +193,7 @@ export default {
         // j_j
       },
       hoverPointStats: null,
-      snps: []
+      snps = ""
     };
   },
   computed: {
@@ -332,15 +330,7 @@ export default {
 
       this.selections.svg.call(this.zoom);
 
-      _.forEach(this.data, (position, index) => {
-        let dominant = _.chain(position.bpStat)
-          .entries()
-          .maxBy(1)
-          .value();
-        if (dominant[0] !== this.referenceSeq.charAt(index)) {
-          this.snps.push({ x: index, snp: dominant[0] });
-        }
-      });
+      console.log(this.data);
     },
     update() {
       this.points = this.stacks;
@@ -385,40 +375,13 @@ export default {
       let dom = currentScale.domain();
 
       let bases = [];
-      let diff = [];
       if (this.scaleFactor > this.baseFactor) {
         bases = _.slice(
           this.referenceSeq,
           Math.floor(dom[0]),
           Math.floor(dom[1])
         );
-        diff = _.filter(this.snps, snp => snp.x >= dom[0] && snp.x <= dom[1]);
-        console.log(this.snps);
       }
-
-      let snpRects = this.selections.svg
-        .select(".snpbases")
-        .selectAll("rect")
-        .data(diff);
-
-      snpRects
-        .enter()
-        .append("rect")
-        .attr("x", d => currentScale(d.x))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.scaled.y(60))
-        .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
-
-      snpRects
-        .attr("x", d => currentScale(d.x + 0.5))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.padded.height - this.scaled.y(60))
-        .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
-
-      snpRects.exit().remove();
-
       let rects = this.selections.svg
         .select(".bases")
         .selectAll("rect")
