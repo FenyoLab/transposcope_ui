@@ -1,18 +1,34 @@
 <template>
-  <div id="plot" style="height: 80vh">
-    <div
-      class="base-stats"
+  <div id="plot" style="height: 100%">
+    <article
+      class="base-stats message is-small is-dark"
       :style="
-        'top: 20px;left:' +
-          (scaled.x(lastHoverPoint.x) * scaleFactor + transform.x) +
-          'px'
+        'top:' +
+          lastHoverPoint.offsetY +
+          'px;left:' +
+          (lastHoverPoint.offsetX + 60) +
+          'px;opacity:0.9'
       "
       v-if="hoverPointStats !== null"
     >
-      {{ hoverPointStats.bpStat }}
-      {{ hoverPointStats.total }}
-      {{ lastHoverPoint.x }}
-    </div>
+      <div class="message-header">
+        <p>Stats</p>
+      </div>
+      <div class=" message-body">
+        <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
+          {{ name }}: {{ value }}
+        </p>
+        <p>Total: {{ hoverPointStats.total }}</p>
+      </div>
+    </article>
+    <!--v-if="hoverPointStats !== null"-->
+    <!--:style="{`-->
+    <!--  'top:' +-->
+    <!--    lastHoverPoint.y +-->
+    <!--    'px;left:' +-->
+    <!--    (scaled.x(lastHoverPoint.x) * scaleFactor + transform.x) +-->
+    <!--    'px'-->
+    <!--    }"-->
     <svg
       @mousemove="mouseover"
       @mouseleave="hoverPointStats = null"
@@ -208,6 +224,7 @@ export default {
   mounted() {
     window.addEventListener("resize", this.onResize);
     this.onResize();
+
     this.initialize();
   },
   watch: {
@@ -257,6 +274,7 @@ export default {
     onResize() {
       this.width = this.$el.offsetWidth;
       this.height = this.$el.offsetHeight;
+      console.log("height", this.height);
     },
     initialize() {
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
@@ -332,12 +350,15 @@ export default {
 
       this.selections.svg.call(this.zoom);
 
-      _.forEach(this.data, (position, index) => {
+      _.forEach(this.data.slice(1), (position, index) => {
         let dominant = _.chain(position.bpStat)
           .entries()
           .maxBy(1)
           .value();
-        if (dominant[0] !== this.referenceSeq.charAt(index)) {
+        if (
+          dominant[1] > 0 &&
+          dominant[0] !== this.referenceSeq.charAt(index)
+        ) {
           this.snps.push({ x: index, snp: dominant[0] });
         }
       });
@@ -349,18 +370,21 @@ export default {
         this.paths.area[d] = this.createArea(this.points[i]);
       });
     },
-    mouseover({ offsetX }) {
+    mouseover({ offsetX, offsetY }) {
       if (this.data.length > 0) {
         const x = this.scaled.x.invert(
           (offsetX - this.margin.left - this.transform.x) / this.scaleFactor
         );
         const closestPoint = this.getClosestPoint(x);
+
         if (this.lastHoverPoint.index !== closestPoint.index) {
           const point = this.data[closestPoint.index];
           this.paths.selector = this.createValueSelector([point]);
-          this.lastHoverPoint = closestPoint;
           this.hoverPointStats = point;
         }
+        this.lastHoverPoint = closestPoint;
+        this.lastHoverPoint.offsetY = offsetY;
+        this.lastHoverPoint.offsetX = offsetX;
       }
     },
     getClosestPoint(x) {
@@ -393,7 +417,6 @@ export default {
           Math.floor(dom[1])
         );
         diff = _.filter(this.snps, snp => snp.x >= dom[0] && snp.x <= dom[1]);
-        console.log(this.snps);
       }
 
       let snpRects = this.selections.svg

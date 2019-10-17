@@ -1,6 +1,9 @@
 <template>
   <div class="visualization">
-    <Plot v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
+    <progress v-if="data.length == 0" class="progress is-primary" max="100"
+      >15%</progress
+    >
+    <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
   </div>
 </template>
 
