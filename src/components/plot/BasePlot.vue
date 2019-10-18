@@ -1,6 +1,9 @@
 <template>
   <div class="visualization">
-    <Plot v-bind:data="data"></Plot>
+    <progress v-if="data.length == 0" class="progress is-primary" max="100"
+      >15%</progress
+    >
+    <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
   </div>
 </template>
 
@@ -8,12 +11,12 @@
 // const axios = require("axios");
 const { RemoteFile } = require("generic-filehandle");
 const { IndexedCramFile, CraiIndex } = require("@gmod/cram");
-const { loadCramRecords } = require("../js/cram_processor.js");
+const { loadCramRecords } = require("../../js/cram_processor.js");
 //Use indexedfasta library for seqFetch, if using local file (see below)
 // TODO: Update this to use a zipped FA
 const { IndexedFasta } = require("@gmod/indexedfasta");
 
-import Plot from "./Plot.vue";
+import Plot from "./BaseSVG.vue";
 
 export default {
   name: "Visualization",
@@ -26,6 +29,7 @@ export default {
   data() {
     return {
       data: [],
+      referenceSeq: "",
       index_start: 1,
       // index_start: 699,
       // index_end: 700,
@@ -71,6 +75,7 @@ export default {
         console.log(seqId, start, end);
         let a = (await t.getSequenceList())[0];
         let seq = await t.getSequence(a, start - 1, end);
+        this.referenceSeq = seq;
         // note:
         // * seqFetch should return a promise for a string, in this instance retrieved from IndexedFasta
         // * we use start-1 because cram-js uses 1-based but IndexedFasta uses 0-based coordinates

@@ -1,0 +1,43 @@
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
+
+// Set your brand colors
+$grayblue: #455A64;
+//$pink: #FA7C91;
+//$brown: #757763;
+//$beige-light: #D0D1CD;
+$beige-lighter: #EFF0EB;
+$black: #222222;
+
+// Update Bulma's global variables
+$montserrat: 'Montserrat', sans-serif;
+$family-sans-serif: $montserrat;
+//$grey-dark: $brown;
+//$grey-light: $beige-light;
+$primary: $grayblue;
+//$link: $pink;
+$section-padding: 18px 1.5rem;
+
+//Box variables
+$box-radius: 0px;
+$box-shadow: 2px 10px 10px rgba($black, 0.2);
+$box-color: $black;
+
+//text
+//$title-color: $black;
+//$text: $black;
+
+$family-primary: $montserrat;
+
+//table
+$table-head-background-color: $primary;
+$table-head-cell-color: $beige-lighter;
+
+// Update some of Bulma's component variables
+//$body-background-color: $beige-lighter;
+//$control-border-width: 2px;
+//$input-border-color: transparent;
+//$input-shadow: none;
+$body-overflow-y: hidden;
+
+@import "~bulma/bulma";
