@@ -1,9 +1,11 @@
 <template>
-  <div class="visualization">
-    <progress v-if="data.length == 0" class="progress is-primary" max="100"
-      >15%</progress
-    >
-    <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
+  <div class="box" style="height: 100%">
+    <div class="visualization" style="height: 100%">
+      <progress v-if="data.length == 0" class="progress is-primary" max="100"
+        >15%</progress
+      >
+      <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
+    </div>
   </div>
 </template>
 

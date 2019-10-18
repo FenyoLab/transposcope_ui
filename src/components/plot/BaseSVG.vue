@@ -17,6 +17,7 @@
       <div class=" message-body">
         <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
           {{ name }}: {{ value }}
+          {{ "(" + Math.floor(100 * (value / hoverPointStats.total)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
       </div>
@@ -190,7 +191,6 @@ export default {
         gx: null,
         gy: null
       },
-      orientations: [],
       zoom: null,
       scaleFactor: 1,
       baseFactor: 100,
@@ -211,7 +211,30 @@ export default {
         // j_j
       },
       hoverPointStats: null,
-      snps: []
+      snps: [],
+      orientations: [
+        "gg",
+        "jj",
+        "ll",
+        "gn",
+        "jn",
+        "ln",
+        "g_g",
+        "g_jG",
+        "g_jJ",
+        "gjG",
+        "gjJ",
+        "glL",
+        "glG",
+        "jlJ",
+        "jlL",
+        "j_j5",
+        "j_j3"
+      ],
+      scaleToStack: false,
+      order: d3.stackOrderDescending,
+      offset: d3.stackOffsetNone,
+      type: "stacked"
     };
   },
   computed: {
@@ -222,6 +245,28 @@ export default {
     }
   },
   mounted() {
+    this.$root.$on("updatedOrientations", orientations => {
+      this.orientations = orientations;
+      this.initialize();
+      this.update();
+    });
+    this.$root.$on("updateChartType", type => {
+      console.log(type);
+      if (type === "stacked") {
+        this.order = d3.stackOrderDescending;
+        this.offset = d3.stackOffsetNone;
+        this.scaleToStack = false;
+      } else if (type === "stream") {
+        this.order = d3.stackOrderInsideOut;
+        this.offset = d3.stackOffsetSilhouette;
+        this.scaleToStack = true;
+      }
+      if (this.type !== type) {
+        this.type = type;
+        this.initialize();
+        this.update();
+      }
+    });
     window.addEventListener("resize", this.onResize);
     this.onResize();
 
@@ -274,7 +319,6 @@ export default {
     onResize() {
       this.width = this.$el.offsetWidth;
       this.height = this.$el.offsetHeight;
-      console.log("height", this.height);
     },
     initialize() {
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
@@ -287,17 +331,11 @@ export default {
 
       this.scaled.x.domain(d3.extent(this.data, (d, i) => i));
 
-      // TODO: The max/min etc should be passed as props
-      this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
-      if (this.data.length > 0)
-        this.orientations = _.keys(this.data[0].classes); //, d => d.name);
-      //this.orientations = ["gjG", "gjJ", "glG", "glL", "gg"];
-
       this.stacks = d3
         .stack()
-        //.order(d3.stackOrderInsideOut)
-        //.offset(d3.stackOffsetSilhouette)
-        .order(d3.stackOrderDescending)
+
+        .order(this.order)
+        .offset(this.offset)
         .keys(this.orientations)
         .value(function(d, key) {
           return d.classes[key];
@@ -306,10 +344,15 @@ export default {
       _.forEach(this.orientations, d => {
         this.paths.area[d] = "";
       });
-      //this.scaled.y.domain([
-      //   d3.min(this.stacks, l => d3.min(l, d => d[0])),
-      //    d3.max(this.stacks, l => d3.max(l, d => d[1]))
-      //  ]);
+      // TODO: Add an option for whether to scale or not
+      if (this.scaleToStack) {
+        this.scaled.y.domain([
+          d3.min(this.stacks, l => d3.min(l, d => d[0])),
+          d3.max(this.stacks, l => d3.max(l, d => d[1]))
+        ]);
+      } else {
+        this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
+      }
 
       this.axis.x = d3
         .axisTop()
