@@ -3,6 +3,7 @@
     <NavBar></NavBar>
     <section class="section" style="height:calc(100vh - 52px)">
       <div class="columns has-text-grey-dark" style="height: 100%">
+        <!--TODO: Move this div to a separate component -->
         <div class="column is-9" style="height: 100%">
           <Visualization style="height: 60%"></Visualization>
           <BaseUI></BaseUI>

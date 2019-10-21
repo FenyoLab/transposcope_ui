@@ -4,7 +4,15 @@
       <progress v-if="data.length == 0" class="progress is-primary" max="100"
         >15%</progress
       >
-      <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
+      <!--<Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>-->
+      <!--<BaseReadView :reads="data"></BaseReadView>-->
+      <keep-alive>
+        <component
+          :is="dynamicComponent"
+          :data="data"
+          :referenceSeq="referenceSeq"
+        ></component>
+      </keep-alive>
     </div>
   </div>
 </template>
@@ -13,12 +21,13 @@
 // const axios = require("axios");
 const { RemoteFile } = require("generic-filehandle");
 const { IndexedCramFile, CraiIndex } = require("@gmod/cram");
-const { loadCramRecords } = require("../../js/cram_processor.js");
+const { getReads, loadCramRecords } = require("../../js/cram_processor.js");
 //Use indexedfasta library for seqFetch, if using local file (see below)
 // TODO: Update this to use a zipped FA
 const { IndexedFasta } = require("@gmod/indexedfasta");
 
 import Plot from "./BaseSVG.vue";
+import BaseReadView from "./BaseReadView.vue";
 
 export default {
   name: "Visualization",
@@ -26,7 +35,8 @@ export default {
     loci: String
   },
   components: {
-    Plot
+    Plot,
+    BaseReadView
   },
   data() {
     return {
@@ -37,21 +47,35 @@ export default {
       // index_end: 700,
       index_end: 4859,
       indexedFile: null,
-      publicPath: process.env.BASE_URL
+      publicPath: process.env.BASE_URL,
+      active: "histogram"
     };
   },
   mounted() {
     console.log("mounted");
+    this.$root.$on("updatedView", active => {
+      if (active === "histogram") {
+        loadCramRecords(
+          this.indexedFile,
+          this.index_start,
+          this.index_end
+        ).then(data => {
+          this.data = data;
+          this.active = active;
+        });
+      } else if (active === "5p_junction") {
+        getReads(this.indexedFile, 999, 1001).then(data => {
+          this.data = null;
+          this.data = data;
+          this.active = active;
+        });
+      }
+    });
     loadCramRecords(this.indexedFile, this.index_start, this.index_end).then(
       data => {
         this.data = data;
       }
     );
-    /* processCram(this.indexedFile, this.index_start, this.index_end).then(
-      data => {
-        this.data = data;
-      }
-    ); */
   },
   beforeMount() {
     const t = new IndexedFasta({
@@ -78,26 +102,22 @@ export default {
         let a = (await t.getSequenceList())[0];
         let seq = await t.getSequence(a, start - 1, end);
         this.referenceSeq = seq;
-        // note:
-        // * seqFetch should return a promise for a string, in this instance retrieved from IndexedFasta
-        // * we use start-1 because cram-js uses 1-based but IndexedFasta uses 0-based coordinates
-        // * the seqId is a numeric identifier
         return seq;
       },
       checkSequenceMD5: false
     });
-
-    /* console.log(indexedFile); */
-    // example of fetching records from an indexed CRAM file.
-    // NOTE: only numeric IDs for the reference sequence are accepted.
-    // For indexedfasta the numeric ID is the order in which the sequence names appear in the header
-
-    // Wrap in an async and then run
+  },
+  computed: {
+    dynamicComponent() {
+      switch (this.active) {
+        case "histogram":
+          return Plot;
+        case "5p_junction":
+          return BaseReadView;
+      }
+      return "component-unknown";
+    }
   }
-  /* mounted () { */
-  /* console.log('mounted', this.indexedFile); */
-  /*   this.run(); */
-  /* } */
 };
 </script>
 
