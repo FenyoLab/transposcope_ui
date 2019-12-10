@@ -1,17 +1,11 @@
 <template>
   <div class="box" style="height: 100%">
     <div class="visualization" style="height: 100%">
-      <progress v-if="data.length == 0" class="progress is-primary" max="100"
-        >15%</progress
-      >
+      <progress v-if="data.length == 0" class="progress is-primary" max="100">15%</progress>
       <!--<Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>-->
       <!--<BaseReadView :reads="data"></BaseReadView>-->
       <keep-alive>
-        <component
-          :is="dynamicComponent"
-          :data="data"
-          :referenceSeq="referenceSeq"
-        ></component>
+        <component :is="dynamicComponent" :data="data" :referenceSeq="referenceSeq"></component>
       </keep-alive>
     </div>
   </div>
@@ -32,7 +26,10 @@ import BaseReadView from "./BaseReadView.vue";
 export default {
   name: "Visualization",
   props: {
-    loci: String
+    loci: String,
+    group: String,
+    meStart: Number,
+    meEnd: Number
   },
   components: {
     Plot,
@@ -45,14 +42,14 @@ export default {
       index_start: 1,
       // index_start: 699,
       // index_end: 700,
-      index_end: 4859,
+      index_end: 3991,
       indexedFile: null,
       publicPath: process.env.BASE_URL,
       active: "histogram"
     };
   },
   mounted() {
-    console.log("mounted");
+    console.log("mounted", this.loci, this.group);
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
         loadCramRecords(
@@ -71,30 +68,34 @@ export default {
         });
       }
     });
-    loadCramRecords(this.indexedFile, this.index_start, this.index_end).then(
-      data => {
-        this.data = data;
-      }
-    );
+    loadCramRecords(
+      this.indexedFile,
+      this.index_start,
+      this.index_end,
+      this.meStart,
+      this.meEnd
+    ).then(data => {
+      this.data = data;
+    });
   },
   beforeMount() {
+    console.log(`data/${this.group}/cram/${this.loci}.cram.crai`);
     const t = new IndexedFasta({
       fasta: new RemoteFile(
-        this.publicPath + "input/fasta/chr22_10743407.fasta"
+        this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta`
       ),
       fai: new RemoteFile(
-        this.publicPath + "input/fasta/chr22_10743407.fasta.fai"
+        this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta.fai`
       )
     });
-
     // open local files
     this.indexedFile = new IndexedCramFile({
       cramFilehandle: new RemoteFile(
-        this.publicPath + "input/cram/chr22_10743407.cramtools.cram"
+        this.publicPath + `data/${this.group}/cram/${this.loci}.cram`
       ),
       index: new CraiIndex({
         filehandle: new RemoteFile(
-          this.publicPath + "input/cram/chr22_10743407.cramtools.cram.crai"
+          this.publicPath + `data/${this.group}/cram/${this.loci}.cram.crai`
         )
       }),
       seqFetch: async (seqId, start, end) => {

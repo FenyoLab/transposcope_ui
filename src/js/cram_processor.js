@@ -2,7 +2,7 @@
 
 const _ = require("lodash");
 
-// 1000; 3912
+// meStartCoord; meEndCoord
 
 function buildRead(read) {
   let alignmentStart = read.alignmentStart;
@@ -53,14 +53,14 @@ function processReads(read1, read2) {
   return [r1, r2];
 }
 
-function classifyRead(read) {
+function classifyRead(read, meStartCoord, meEndCoord) {
   // TODO: Add unmapped condition
-  if (read.rStart < 1000 && read.rEnd < 1000) return "G5";
-  else if (read.rStart > 3912 && read.rEnd > 3912) return "G3";
-  else if (1000 < read.rStart && read.rEnd < 3912) return "L";
-  //else if (read.rStart <= 1000 && 3912 <= read.rEnd) return "JS";
-  else if (read.rStart <= 1000 && read.rEnd >= 1000) return "J5";
-  else if (read.rStart <= 3912 && read.rEnd >= 3912) return "J3";
+  if (read.rStart < meStartCoord && read.rEnd < meStartCoord) return "G5";
+  else if (read.rStart > meEndCoord && read.rEnd > meEndCoord) return "G3";
+  else if (meStartCoord < read.rStart && read.rEnd < meEndCoord) return "L";
+  //else if (read.rStart <= meStartCoord && meEndCoord <= read.rEnd) return "JS";
+  else if (read.rStart <= meStartCoord && read.rEnd >= meStartCoord) return "J5";
+  else if (read.rStart <= meEndCoord && read.rEnd >= meEndCoord) return "J3";
   else return null;
 }
 
@@ -101,9 +101,9 @@ const orientationMappings = {
   "G3|unmapped": ["gn", "unmapped"]
 };
 
-function classifyResults(reads) {
-  let r1Type = reads[0] ? classifyRead(reads[0]) : "unmapped";
-  let r2Type = reads[1] ? classifyRead(reads[1]) : "unmapped";
+function classifyResults(reads, meStartCoord, meEndCoord) {
+  let r1Type = reads[0] ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
+  let r2Type = reads[1] ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
   let type = orientationMappings[r1Type + "|" + r2Type] || [
     "unmapped",
     "unmapped"
@@ -113,7 +113,7 @@ function classifyResults(reads) {
   return type;
 }
 
-export async function loadCramRecords(indexedFile, start, end) {
+export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
@@ -123,7 +123,7 @@ export async function loadCramRecords(indexedFile, start, end) {
     //const records = await indexedFile.getRecordsForRange(0, 200, 300);
     // TODO: Update the size of the histogram to the region size with padding
     console.log(start - end);
-    let histogram = _.map(Array(500 + end - start), (d, i) => {
+    let histogram = _.map(Array(5 + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -161,7 +161,7 @@ export async function loadCramRecords(indexedFile, start, end) {
           reads = reads.sort(r => r.alignmentStart);
         }
         let results = processReads(reads[0], reads[1]);
-        let orientations = classifyResults(results);
+        let orientations = classifyResults(results, meStartCoord, meEndCoord);
         let result = results[0];
         let orientation = orientations[0];
         if (result) {

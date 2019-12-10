@@ -1,15 +1,20 @@
 <template>
   <div class="box is-paddingless" style="height: 100%;overflow-y: scroll">
-    <table
-      class="table is-narrow is-fullwidth is-hoverable table is-striped"
-      style="height: 100%"
-    >
+    <table class="table is-narrow is-fullwidth is-hoverable table is-striped" style="height: 100%">
       <thead>
         <tr>
-          <th><abbr title="Chromosome-Position">ID</abbr></th>
-          <th><abbr title="Closest Gene">Gene</abbr></th>
-          <th><abbr title="Insertion Confidence">P</abbr></th>
-          <th><abbr title="View region on UCSC">UCSC</abbr></th>
+          <th>
+            <abbr title="Chromosome-Position">ID</abbr>
+          </th>
+          <th>
+            <abbr title="Closest Gene">Gene</abbr>
+          </th>
+          <th>
+            <abbr title="Insertion Confidence">P</abbr>
+          </th>
+          <th>
+            <abbr title="View region on UCSC">UCSC</abbr>
+          </th>
         </tr>
       </thead>
       <tbody>

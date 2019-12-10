@@ -5,7 +5,13 @@
       <div class="columns has-text-grey-dark" style="height: 100%">
         <!--TODO: Move this div to a separate component -->
         <div class="column is-9" style="height: 100%">
-          <Visualization style="height: 60%"></Visualization>
+          <Visualization
+            style="height: 60%"
+            :group="group"
+            :loci="loci"
+            :meStart="meStart"
+            :meEnd="meEnd"
+          ></Visualization>
           <BaseUI></BaseUI>
         </div>
         <div class="column" style="height: 100%">
@@ -30,6 +36,14 @@ import Visualization from "./components/plot/BasePlot.vue";
 import NavBar from "./components/navbar/BaseNavbar.vue";
 export default {
   name: "app",
+  data() {
+    return {
+      loci: "chr22_11376996",
+      group: "ungrouped/ungrouped/melt_test",
+      meStart: 1000,
+      meEnd: 2991
+    };
+  },
   components: {
     BaseUI,
     BaseTable,

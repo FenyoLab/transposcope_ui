@@ -14,10 +14,10 @@
       <div class="message-header">
         <p>Stats</p>
       </div>
-      <div class=" message-body">
+      <div class="message-body">
         <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
           {{ name }}: {{ value }}
-          {{ "(" + Math.floor(100 * (value / hoverPointStats.total)) + "%)" }}
+          {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
       </div>
@@ -37,7 +37,7 @@
       :height="height"
     >
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
-        <g class="bases"></g>
+        <g class="bases" />
 
         <g
           :style="{
@@ -57,9 +57,9 @@
           <path class="selector" :d="paths.selector" />
         </g>
 
-        <g class="axis axis--x"></g>
-        <g class="axis axis--y"></g>
-        <g class="snpbases"></g>
+        <g class="axis axis--x" />
+        <g class="axis axis--y" />
+        <g class="snpbases" />
       </g>
 
       <pattern
@@ -205,7 +205,13 @@ export default {
         glL: "url(#PglL)",
         glG: "#3399cc",
         jn: "url(#Pjn)",
-        jj: "url(#Pjj)"
+        jj: "url(#Pjj)",
+        jlJ: "#FF0000",
+        jlL: "#FF0000",
+        j_j3: "#FF0000",
+        j_j5: "#FF0000",
+        ln: "#FF0000",
+        ll: "#FF0000"
         // ln
         // ll
         // j_j
