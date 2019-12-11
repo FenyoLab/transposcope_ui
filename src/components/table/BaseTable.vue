@@ -1,28 +1,24 @@
 <template>
-  <div class="box is-paddingless" style="height: 100%;overflow-y: scroll">
-    <table class="table is-narrow is-fullwidth is-hoverable table is-striped" style="height: 100%">
+  <div class="box is-paddingless" style="overflow-y: scroll">
+    <!-- <div class="box is-paddingless" style="height: 100%;overflow-y: scroll"> -->
+    <table
+      class="table is-bordered is-narrow is-fullwidth is-hoverable table is-striped"
+      style="height: 100%"
+    >
       <thead>
         <tr>
-          <th>
+          <th v-for="value in header" :key="value">{{value}}</th>
+          <!-- <th>
             <abbr title="Chromosome-Position">ID</abbr>
-          </th>
-          <th>
-            <abbr title="Closest Gene">Gene</abbr>
-          </th>
-          <th>
-            <abbr title="Insertion Confidence">P</abbr>
-          </th>
-          <th>
-            <abbr title="View region on UCSC">UCSC</abbr>
-          </th>
+          </th>-->
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="i in 35" :key="i">
-          <td>{{ i }}</td>
-          <td>B</td>
-          <td>C</td>
-          <td>D</td>
+      <tbody class="is-size-7">
+        <tr v-for="(row, idx) in content" :key="idx" :class="{ 'is-selected': idx==selected_idx}">
+          <!-- <td v-for="(col, i) in row" :key='i'>{{ col }}</td> -->
+          <td>{{ row[0] }}</td>
+          <td :style="'color:'+row[1][1]">{{ row[1][0] }}</td>
+          <td>{{ row[2] }}</td>
         </tr>
       </tbody>
     </table>
@@ -30,9 +26,35 @@
 </template>
 
 <script>
+const axios = require("axios");
+
 export default {
-  name: "BaseTable"
+  name: "BaseTable",
+  props: {
+    group: String,
+    loci: String
+  },
+  data() {
+    return {
+      header: ["ID", "Gene", "P", "UCSC"],
+      content: [["A", "B", "C"]],
+      selected_idx: 2
+    };
+  },
+  mounted() {
+    axios
+      .get(process.env.BASE_URL + `data/${this.group}/table_info.json`)
+      .then(response => {
+        this.header = response.data.heading;
+        this.content = response.data.data;
+      })
+      .catch(function(error) {
+        console.log(error);
+      })
+      .finally(function() {});
+  }
 };
 </script>
 
-<style></style>
+<style>
+</style>

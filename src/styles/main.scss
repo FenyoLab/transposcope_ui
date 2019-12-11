@@ -3,6 +3,7 @@
 
 // Set your brand colors
 $grayblue: #455A64;
+$lightgrayblue: rgb(161, 183, 194);
 //$pink: #FA7C91;
 //$brown: #757763;
 //$beige-light: #D0D1CD;
@@ -36,6 +37,7 @@ $family-primary: $montserrat;
 //table
 $table-head-background-color: $primary;
 $table-head-cell-color: $beige-lighter;
+$table-row-active-background-color:  $lightgrayblue;
 
 // Update some of Bulma's component variables
 //$body-background-color: $beige-lighter;

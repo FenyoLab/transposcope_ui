@@ -49,7 +49,6 @@ export default {
     };
   },
   mounted() {
-    console.log("mounted", this.loci, this.group);
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
         loadCramRecords(
@@ -79,7 +78,6 @@ export default {
     });
   },
   beforeMount() {
-    console.log(`data/${this.group}/cram/${this.loci}.cram.crai`);
     const t = new IndexedFasta({
       fasta: new RemoteFile(
         this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta`
@@ -99,7 +97,6 @@ export default {
         )
       }),
       seqFetch: async (seqId, start, end) => {
-        console.log(seqId, start, end);
         let a = (await t.getSequenceList())[0];
         let seq = await t.getSequence(a, start - 1, end);
         this.referenceSeq = seq;

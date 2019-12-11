@@ -29,11 +29,7 @@
         </div>
         <div class="field">
           <label class="checkbox">
-            <input
-              type="checkbox"
-              value="g_jG"
-              v-model="selectedOrientations"
-            />
+            <input type="checkbox" value="g_jG" v-model="selectedOrientations" />
             Genome / Junction (Bridging)
           </label>
         </div>
@@ -73,11 +69,7 @@
         </div>
         <div class="field">
           <label class="checkbox">
-            <input
-              type="checkbox"
-              value="g_jJ"
-              v-model="selectedOrientations"
-            />
+            <input type="checkbox" value="g_jJ" v-model="selectedOrientations" />
             Genome / Junction (Bridging)
           </label>
         </div>
@@ -144,7 +136,6 @@ export default {
           this.selectedOrientations,
           this.genomeOrienations
         );
-        console.log(selected);
         if (value) {
           selected = _.concat(selected, this.genomeOrienations);
         }
@@ -163,7 +154,6 @@ export default {
           this.selectedOrientations,
           this.junctionOrienations
         );
-        console.log(selected);
         if (value) {
           selected = _.concat(selected, this.junctionOrienations);
         }

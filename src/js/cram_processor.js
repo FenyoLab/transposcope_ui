@@ -22,8 +22,9 @@ function buildRead(read) {
           readEnd += rf.data.length;
           bases = bases.slice(0, rf.pos - 1);
         }
-      } else if (rf.code === "X") {
+        // } else if (rf.code === "X") {
         // These changes have already been made in getReadBases
+        // console.log('X')
       } else if (rf.code === "D") {
         bases =
           bases.slice(0, rf.pos - 1) +
@@ -35,7 +36,8 @@ function buildRead(read) {
         //} else if (rf.code === "i") {
         //console.log("i");
       } else {
-        //console.log("UNSEEN REFERENCE FLAG", rf);
+        //TODO: Make sure that all flags are being processed
+        // console.log("UNSEEN REFERENCE FLAG", rf)
       }
     });
   }
@@ -122,7 +124,6 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
     );
     //const records = await indexedFile.getRecordsForRange(0, 200, 300);
     // TODO: Update the size of the histogram to the region size with padding
-    console.log(start - end);
     let histogram = _.map(Array(5 + end - start), (d, i) => {
       return {
         total: 0,
@@ -150,7 +151,7 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
       };
     });
     // FIXME: There are 10 reads missing from pos 114
-    let count = 0;
+    // let count = 0;
     _.chain(records)
       .groupBy(record => record.readName)
       .forEach((reads, _unusedReadName) => {
@@ -165,7 +166,7 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
         let result = results[0];
         let orientation = orientations[0];
         if (result) {
-          count += 1;
+          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
@@ -180,7 +181,7 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
         result = results[1];
         orientation = orientations[1];
         if (result) {
-          count += 1;
+          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
@@ -194,10 +195,6 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
         }
       })
       .value();
-    console.log("num_records", records.length);
-    console.log("processed_reads", count);
-    console.log(histogram[114]);
-    console.log(histogram[115]);
     return histogram;
   }
 }
@@ -240,7 +237,7 @@ export async function getReads(indexedFile, start, end) {
                 bases.slice(rf.pos - 1) +
                 result_string;
             } else if (rf.code === "I") {
-              console.log(record, rf);
+              console.log("I in read", rf)
             } else if (rf.code === "i") {
               result_string =
                 "<span style='color: purple;font-weight: bold'>" +
