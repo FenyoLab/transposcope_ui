@@ -4,7 +4,7 @@ const _ = require("lodash");
 
 // meStartCoord; meEndCoord
 
-function buildRead(read) {
+function buildRead (read) {
   let alignmentStart = read.alignmentStart;
   let readStart = read.alignmentStart;
   let alignmentEnd = readStart + read.lengthOnRef;
@@ -49,13 +49,13 @@ function buildRead(read) {
   };
 }
 
-function processReads(read1, read2) {
+function processReads (read1, read2) {
   let r1 = read1 == undefined ? undefined : buildRead(read1);
   let r2 = read2 == undefined ? undefined : buildRead(read2);
   return [r1, r2];
 }
 
-function classifyRead(read, meStartCoord, meEndCoord) {
+function classifyRead (read, meStartCoord, meEndCoord) {
   // TODO: Add unmapped condition
   if (read.rStart < meStartCoord && read.rEnd < meStartCoord) return "G5";
   else if (read.rStart > meEndCoord && read.rEnd > meEndCoord) return "G3";
@@ -103,7 +103,7 @@ const orientationMappings = {
   "G3|unmapped": ["gn", "unmapped"]
 };
 
-function classifyResults(reads, meStartCoord, meEndCoord) {
+function classifyResults (reads, meStartCoord, meEndCoord) {
   let r1Type = reads[0] ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
   let r2Type = reads[1] ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
   let type = orientationMappings[r1Type + "|" + r2Type] || [
@@ -115,7 +115,7 @@ function classifyResults(reads, meStartCoord, meEndCoord) {
   return type;
 }
 
-export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord) {
+export async function loadCramRecords (indexedFile, start, end, meStartCoord, meEndCoord) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
@@ -199,7 +199,7 @@ export async function loadCramRecords(indexedFile, start, end, meStartCoord, meE
   }
 }
 
-export async function getReads(indexedFile, start, end) {
+export async function getReads (indexedFile, start, end) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(0, start, end);
     let data = _.map(records, record => {

@@ -6,22 +6,27 @@
           type="radio"
           value="histogram"
           v-model="currentView"
-          name="answer"
+          name="type"
           checked
         />
-        histograms
+        Histograms
       </label>
       <label class="radio">
         <input
           type="radio"
           value="5p_junction"
           v-model="currentView"
-          name="answer"
+          name="type"
         />
         5' Junction Reads
       </label>
-      <label class="radio" disabled>
-        <input type="radio" name="answer" disabled />
+      <label class="radio">
+        <input
+          type="radio"
+          value="3p_junction"
+          v-model="currentView"
+          name="type"
+        />
         3' Junction Reads
       </label>
     </div>
@@ -35,6 +40,12 @@ export default {
     return {
       currentView: "histogram"
     };
+  },
+  mounted() {
+    this.$root.$on("resetView", () => {
+      console.log("resetting view");
+      this.currentView = "histogram";
+    });
   },
   watch: {
     currentView() {

@@ -1,5 +1,8 @@
 <template>
-  <div class="box" style="height: calc(40% - 1.5rem)">
+  <div
+    class="box"
+    style="height: 100%"
+  >
     <div class="tabs">
       <ul>
         <li
