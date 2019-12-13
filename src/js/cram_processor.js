@@ -252,7 +252,8 @@ export async function getReads (indexedFile, start, end) {
           });
       }
       let padding = " ".repeat(
-        record.alignmentStart - clipping_offset - start + 110
+        // record.alignmentStart - clipping_offset - start + 110
+        150 - (start - (record.alignmentStart - clipping_offset))
       );
       result_string = padding + bases + result_string;
       return result_string;

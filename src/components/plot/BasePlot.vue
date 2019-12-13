@@ -57,7 +57,8 @@ export default {
       meEnd: 1,
       indexedFile: null,
       publicPath: "", //process.env.BASE_URL,
-      active: "histogram"
+      active: "histogram",
+      fasta: null
     };
   },
   mounted() {
@@ -87,6 +88,14 @@ export default {
             this.data = null;
             this.data = data;
             this.active = active;
+            this.fasta.getSequenceList().then(d => {
+              let a = d[0];
+              this.fasta
+                .getSequence(a, this.meEnd - 150, this.meEnd + 150)
+                .then(s => {
+                  this.referenceSeq = s;
+                });
+            });
           }
         );
       }
@@ -154,6 +163,7 @@ export default {
           this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta.fai`
         )
       });
+      this.fasta = t;
     }
   },
   computed: {

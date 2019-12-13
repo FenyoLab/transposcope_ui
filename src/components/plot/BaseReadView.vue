@@ -4,7 +4,7 @@
       class='reads'
       style="overflow: scroll;height: 95%"
     >
-      <p>{{" ".repeat(13) + referenceSeq}}</p>
+      <p class='has-text-weight-bold'>{{referenceSeq}}</p>
       <p
         v-for="(read, index) in data"
         :key="index"
