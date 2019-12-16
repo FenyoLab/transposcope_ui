@@ -1,5 +1,8 @@
 <template>
-  <div id="plot" style="height: 100%">
+  <div
+    id="plot"
+    style="height: 100%"
+  >
     <article
       class="base-stats message is-small is-dark"
       :style="
@@ -15,21 +18,16 @@
         <p>Stats</p>
       </div>
       <div class="message-body">
-        <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
+        <p
+          v-for="(value, name) in hoverPointStats.bpStat"
+          :key="name"
+        >
           {{ name }}: {{ value }}
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
       </div>
     </article>
-    <!--v-if="hoverPointStats !== null"-->
-    <!--:style="{`-->
-    <!--  'top:' +-->
-    <!--    lastHoverPoint.y +-->
-    <!--    'px;left:' +-->
-    <!--    (scaled.x(lastHoverPoint.x) * scaleFactor + transform.x) +-->
-    <!--    'px'-->
-    <!--    }"-->
     <svg
       @mousemove="mouseover"
       @mouseleave="hoverPointStats = null"
@@ -39,14 +37,11 @@
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g class="bases" />
 
-        <g
-          :style="{
+        <g :style="{
             transform: `translate(${transform.x}px, ${
               transform.y
             }px) scaleX(${scaleFactor})`
-          }"
-        >
-          <!-- <path class="line" :d="paths.line" /> -->
+          }">
           <path
             v-for="orientation in orientations"
             v-bind:key="orientation"
@@ -54,7 +49,10 @@
             v-bind:d="paths.area[orientation]"
             v-bind:style="'fill:' + fills[orientation]"
           />
-          <path class="selector" :d="paths.selector" />
+          <path
+            class="selector"
+            :d="paths.selector"
+          />
         </g>
 
         <g class="axis axis--x" />
@@ -70,7 +68,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#fc8803" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#fc8803"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -85,7 +89,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#aa0000" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#aa0000"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -101,7 +111,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#b707e3" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#b707e3"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -116,7 +132,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#888800" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#888800"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -131,7 +153,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#CC8800" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#CC8800"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -357,7 +385,10 @@ export default {
           d3.max(this.stacks, l => d3.max(l, d => d[1]))
         ]);
       } else {
-        this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
+        this.scaled.y.domain([
+          0,
+          d3.max(_.map(this.data, d => d.total)) * 1.05
+        ]);
       }
 
       this.axis.x = d3
@@ -365,15 +396,16 @@ export default {
         .scale(this.scaled.x)
         .ticks((this.padded.width / 1000) * 5)
         .tickSize(-this.padded.height)
-        .tickPadding(5 - this.padded.height);
+        .tickPadding(-this.padded.height - this.margin.bottom * 0.75);
 
+      let yMax = Math.floor(this.scaled.y.domain()[1]) || 0;
       this.axis.y = d3
         .axisLeft()
         .scale(this.scaled.y)
-        .ticks(10)
-        .tickSizeInner(-100)
-        .tickSizeOuter(-50)
-        .tickPadding(-this.margin.left);
+        .ticks(yMax / 8 > 1 ? 8 : yMax % 8)
+        .tickSize(-this.padded.width)
+        .tickPadding(this.margin.left * 0.25)
+        .tickFormat(d3.format("d"));
 
       if (this.selections.svg) {
         this.selections.gx.call(this.axis.x);
