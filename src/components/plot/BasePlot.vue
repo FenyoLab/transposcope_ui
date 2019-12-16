@@ -80,6 +80,14 @@ export default {
             this.data = null;
             this.data = data;
             this.active = active;
+            this.fasta.getSequenceList().then(d => {
+              let a = d[0];
+              this.fasta
+                .getSequence(a, this.meStart - 150, this.meStart + 150)
+                .then(s => {
+                  this.referenceSeq = s;
+                });
+            });
           }
         );
       } else if (active === "3p_junction") {

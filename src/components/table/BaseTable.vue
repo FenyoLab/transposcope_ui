@@ -9,9 +9,9 @@
       v-model="filterKey"
       placeholder="Search loci"
     >
-    <table class="table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
+    <table class=" table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
       <thead>
-        <tr>
+        <tr class="loci">
           <th
             v-for="key in columns"
             :key="key"
@@ -34,7 +34,7 @@
           v-for="(entry, idx) in  filteredLoci"
           :key="idx"
           @click="selectLoci(idx, entry['ID'])"
-          :class="{ 'is-selected': idx==selected_idx}"
+          :class="{ 'loci is-selected': idx==selected_idx}"
         >
           <td
             v-for="key in columns"
@@ -136,7 +136,7 @@ export default {
 </script>
 
 <style>
-tr {
+.loci {
   cursor: pointer;
 }
 .arrow {
