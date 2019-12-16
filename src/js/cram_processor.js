@@ -124,7 +124,7 @@ export async function loadCramRecords (indexedFile, start, end, meStartCoord, me
     );
     //const records = await indexedFile.getRecordsForRange(0, 200, 300);
     // TODO: Update the size of the histogram to the region size with padding
-    let histogram = _.map(Array(5 + end - start), (d, i) => {
+    let histogram = _.map(Array(10 + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -150,8 +150,6 @@ export async function loadCramRecords (indexedFile, start, end, meStartCoord, me
         }
       };
     });
-    // FIXME: There are 10 reads missing from pos 114
-    // let count = 0;
     _.chain(records)
       .groupBy(record => record.readName)
       .forEach((reads, _unusedReadName) => {
@@ -199,7 +197,9 @@ export async function loadCramRecords (indexedFile, start, end, meStartCoord, me
   }
 }
 
-export async function getReads (indexedFile, start, end) {
+export async function getReads (indexedFile, insertionSite, paddingWidth, referenceWidth) {
+  let start = insertionSite - paddingWidth;
+  let end = insertionSite + paddingWidth;
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(0, start, end);
     let data = _.map(records, record => {
@@ -253,7 +253,7 @@ export async function getReads (indexedFile, start, end) {
       }
       let padding = " ".repeat(
         // record.alignmentStart - clipping_offset - start + 110
-        149 - ((start + 5) - (record.alignmentStart - clipping_offset))
+        (referenceWidth - 1) - ((insertionSite) - (record.alignmentStart - clipping_offset))
       );
       result_string = padding + bases + result_string;
       return result_string;

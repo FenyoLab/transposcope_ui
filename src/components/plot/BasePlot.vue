@@ -50,6 +50,7 @@ export default {
   data() {
     return {
       data: [],
+      histData: [],
       referenceSeq: "",
       index_start: 1,
       index_end: 2,
@@ -64,54 +65,54 @@ export default {
   mounted() {
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
-        loadCramRecords(
-          this.indexedFile,
-          this.index_start,
-          this.index_end,
-          this.meStart,
-          this.meEnd
-        ).then(data => {
+        this.data = this.histData;
+        this.active = active;
+        // loadCramRecords(
+        //   this.indexedFile,
+        //   this.index_start,
+        //   this.index_end,
+        //   this.meStart,
+        //   this.meEnd
+        // ).then(data => {
+        //   // this.data = null;
+        //   this.data = data;
+
+        // });
+      } else if (active === "5p_junction") {
+        getReads(this.indexedFile, this.meStart, 5, 150).then(data => {
+          this.data = null;
           this.data = data;
           this.active = active;
+          this.fasta.getSequenceList().then(d => {
+            let a = d[0];
+            this.fasta
+              .getSequence(a, this.meStart - 150, this.meStart + 150)
+              .then(s => {
+                this.referenceSeq = s;
+              });
+          });
         });
-      } else if (active === "5p_junction") {
-        getReads(this.indexedFile, this.meStart - 5, this.meStart + 5).then(
-          data => {
-            this.data = null;
-            this.data = data;
-            this.active = active;
-            this.fasta.getSequenceList().then(d => {
-              let a = d[0];
-              this.fasta
-                .getSequence(a, this.meStart - 150, this.meStart + 150)
-                .then(s => {
-                  this.referenceSeq = s;
-                });
-            });
-          }
-        );
       } else if (active === "3p_junction") {
-        getReads(this.indexedFile, this.meEnd - 5, this.meEnd + 5).then(
-          data => {
-            this.data = null;
-            this.data = data;
-            this.active = active;
-            this.fasta.getSequenceList().then(d => {
-              let a = d[0];
-              this.fasta
-                .getSequence(a, this.meEnd - 150, this.meEnd + 150)
-                .then(s => {
-                  this.referenceSeq = s;
-                });
-            });
-          }
-        );
+        getReads(this.indexedFile, this.meEnd, 5, 150).then(data => {
+          this.data = null;
+          this.data = data;
+          this.active = active;
+          this.fasta.getSequenceList().then(d => {
+            let a = d[0];
+            this.fasta
+              .getSequence(a, this.meEnd - 150, this.meEnd + 150)
+              .then(s => {
+                this.referenceSeq = s;
+              });
+          });
+        });
       }
     });
   },
   watch: {
     loci: function() {
-      this.$root.$emit("resetView");
+      this.data = [];
+
       // TODO: Merge all of these async calls together (async.parrallel?)
       // open local files
       this.indexedFile = new IndexedCramFile({
@@ -154,14 +155,19 @@ export default {
             this.index_end,
             this.meStart,
             this.meEnd
-          ).then(data => {
-            this.data = data;
-          });
+          )
+            .then(data => {
+              this.data = data;
+              this.histData = data;
+            })
+            .finally(() => {
+              this.$root.$emit("resetView");
+            });
         })
         .catch(function(error) {
           console.error(error);
         })
-        .finally(function() {});
+        .finally(() => {});
       this.data = [];
       const t = new IndexedFasta({
         fasta: new RemoteFile(
