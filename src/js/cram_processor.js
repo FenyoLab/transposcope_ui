@@ -2,9 +2,9 @@
 
 const _ = require("lodash");
 
-// 1000; 3912
+// meStartCoord; meEndCoord
 
-function buildRead(read) {
+function buildRead (read) {
   let alignmentStart = read.alignmentStart;
   let readStart = read.alignmentStart;
   let alignmentEnd = readStart + read.lengthOnRef;
@@ -22,8 +22,9 @@ function buildRead(read) {
           readEnd += rf.data.length;
           bases = bases.slice(0, rf.pos - 1);
         }
-      } else if (rf.code === "X") {
+        // } else if (rf.code === "X") {
         // These changes have already been made in getReadBases
+        // console.log('X')
       } else if (rf.code === "D") {
         bases =
           bases.slice(0, rf.pos - 1) +
@@ -35,7 +36,8 @@ function buildRead(read) {
         //} else if (rf.code === "i") {
         //console.log("i");
       } else {
-        //console.log("UNSEEN REFERENCE FLAG", rf);
+        //TODO: Make sure that all flags are being processed
+        // console.log("UNSEEN REFERENCE FLAG", rf)
       }
     });
   }
@@ -47,20 +49,20 @@ function buildRead(read) {
   };
 }
 
-function processReads(read1, read2) {
+function processReads (read1, read2) {
   let r1 = read1 == undefined ? undefined : buildRead(read1);
   let r2 = read2 == undefined ? undefined : buildRead(read2);
   return [r1, r2];
 }
 
-function classifyRead(read) {
+function classifyRead (read, meStartCoord, meEndCoord) {
   // TODO: Add unmapped condition
-  if (read.rStart < 1000 && read.rEnd < 1000) return "G5";
-  else if (read.rStart > 3912 && read.rEnd > 3912) return "G3";
-  else if (1000 < read.rStart && read.rEnd < 3912) return "L";
-  //else if (read.rStart <= 1000 && 3912 <= read.rEnd) return "JS";
-  else if (read.rStart <= 1000 && read.rEnd >= 1000) return "J5";
-  else if (read.rStart <= 3912 && read.rEnd >= 3912) return "J3";
+  if (read.rStart < meStartCoord && read.rEnd < meStartCoord) return "G5";
+  else if (read.rStart > meEndCoord && read.rEnd > meEndCoord) return "G3";
+  else if (meStartCoord < read.rStart && read.rEnd < meEndCoord) return "L";
+  //else if (read.rStart <= meStartCoord && meEndCoord <= read.rEnd) return "JS";
+  else if (read.rStart <= meStartCoord && read.rEnd >= meStartCoord) return "J5";
+  else if (read.rStart <= meEndCoord && read.rEnd >= meEndCoord) return "J3";
   else return null;
 }
 
@@ -101,9 +103,9 @@ const orientationMappings = {
   "G3|unmapped": ["gn", "unmapped"]
 };
 
-function classifyResults(reads) {
-  let r1Type = reads[0] ? classifyRead(reads[0]) : "unmapped";
-  let r2Type = reads[1] ? classifyRead(reads[1]) : "unmapped";
+function classifyResults (reads, meStartCoord, meEndCoord) {
+  let r1Type = reads[0] ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
+  let r2Type = reads[1] ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
   let type = orientationMappings[r1Type + "|" + r2Type] || [
     "unmapped",
     "unmapped"
@@ -113,7 +115,7 @@ function classifyResults(reads) {
   return type;
 }
 
-export async function loadCramRecords(indexedFile, start, end) {
+export async function loadCramRecords (indexedFile, start, end, meStartCoord, meEndCoord) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
@@ -122,8 +124,7 @@ export async function loadCramRecords(indexedFile, start, end) {
     );
     //const records = await indexedFile.getRecordsForRange(0, 200, 300);
     // TODO: Update the size of the histogram to the region size with padding
-    console.log(start - end);
-    let histogram = _.map(Array(500 + end - start), (d, i) => {
+    let histogram = _.map(Array(10 + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -149,8 +150,6 @@ export async function loadCramRecords(indexedFile, start, end) {
         }
       };
     });
-    // FIXME: There are 10 reads missing from pos 114
-    let count = 0;
     _.chain(records)
       .groupBy(record => record.readName)
       .forEach((reads, _unusedReadName) => {
@@ -161,11 +160,11 @@ export async function loadCramRecords(indexedFile, start, end) {
           reads = reads.sort(r => r.alignmentStart);
         }
         let results = processReads(reads[0], reads[1]);
-        let orientations = classifyResults(results);
+        let orientations = classifyResults(results, meStartCoord, meEndCoord);
         let result = results[0];
         let orientation = orientations[0];
         if (result) {
-          count += 1;
+          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
@@ -180,7 +179,7 @@ export async function loadCramRecords(indexedFile, start, end) {
         result = results[1];
         orientation = orientations[1];
         if (result) {
-          count += 1;
+          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
@@ -194,15 +193,13 @@ export async function loadCramRecords(indexedFile, start, end) {
         }
       })
       .value();
-    console.log("num_records", records.length);
-    console.log("processed_reads", count);
-    console.log(histogram[114]);
-    console.log(histogram[115]);
     return histogram;
   }
 }
 
-export async function processCram(indexedFile, start, end) {
+export async function getReads (indexedFile, insertionSite, paddingWidth, referenceWidth) {
+  let start = insertionSite - paddingWidth;
+  let end = insertionSite + paddingWidth;
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(0, start, end);
     let data = _.map(records, record => {
@@ -210,49 +207,54 @@ export async function processCram(indexedFile, start, end) {
       let clipping_offset = 0;
       let bases = record.getReadBases();
       if (record.readFeatures != undefined) {
-        record.readFeatures.reverse().forEach(rf => {
-          // process the "read features". this can be used similar to
-          // CIGAR/MD strings in SAM. see CRAM specs for more details.
-          if (rf.code === "S") {
-            if (rf.pos === 1) {
-              clipping_offset = rf.data.length;
+        _.sortBy(record.readFeatures, r => r.pos)
+          .reverse()
+          .forEach(rf => {
+            // process the "read features". this can be used similar to
+            // CIGAR/MD strings in SAM. see CRAM specs for more details.
+            if (rf.code === "S") {
+              if (rf.pos === 1) {
+                clipping_offset = rf.data.length;
+              }
+              result_string =
+                "<span style='color: red'>" +
+                rf.data +
+                "</span>" +
+                bases.slice(rf.pos - 1 + rf.data.length) +
+                result_string;
+            } else if (rf.code === "X") {
+              result_string =
+                "<span style='color: orange;font-weight: bold'>" +
+                rf.sub +
+                "</span>" +
+                bases.slice(rf.pos) +
+                result_string;
+            } else if (rf.code === "D") {
+              result_string =
+                "<span style='color: brown;font-weight: bold'>" +
+                "X".repeat(rf.data) +
+                "</span>" +
+                bases.slice(rf.pos - 1) +
+                result_string;
+            } else if (rf.code === "I") {
+              console.log("I in read", rf)
+            } else if (rf.code === "i") {
+              result_string =
+                "<span style='color: purple;font-weight: bold'>" +
+                rf.data +
+                "</span>" +
+                bases.slice(rf.pos) +
+                result_string;
+            } else {
+              console.log("UNSEEN REFERENCE FLAG", rf);
             }
-            result_string =
-              "<span style='color: red'>" +
-              rf.data +
-              "</span>" +
-              bases.slice(rf.pos - 1 + rf.data.length) +
-              result_string;
-          } else if (rf.code === "X") {
-            result_string =
-              "<span style='color: orange;font-weight: bold'>" +
-              rf.sub +
-              "</span>" +
-              bases.slice(rf.pos) +
-              result_string;
-          } else if (rf.code === "D") {
-            result_string =
-              "<span style='color: brown;font-weight: bold'>" +
-              "X".repeat(rf.data) +
-              "</span>" +
-              bases.slice(rf.pos - 1) +
-              result_string;
-          } else if (rf.code === "I") {
-            console.log(record, rf);
-          } else if (rf.code === "i") {
-            result_string =
-              "<span style='color: purple;font-weight: bold'>" +
-              rf.data +
-              "</span>" +
-              bases.slice(rf.pos) +
-              result_string;
-          } else {
-            console.log("UNSEEN REFERENCE FLAG", rf);
-          }
-          bases = bases.slice(0, rf.pos - 1);
-        });
+            bases = bases.slice(0, rf.pos - 1);
+          });
       }
-      let padding = ".".repeat(record.alignmentStart - clipping_offset + 100);
+      let padding = " ".repeat(
+        // record.alignmentStart - clipping_offset - start + 110
+        (referenceWidth - 1) - ((insertionSite) - (record.alignmentStart - clipping_offset))
+      );
       result_string = padding + bases + result_string;
       return result_string;
     });

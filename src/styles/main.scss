@@ -3,6 +3,7 @@
 
 // Set your brand colors
 $grayblue: #455A64;
+$lightgrayblue: rgb(161, 183, 194);
 //$pink: #FA7C91;
 //$brown: #757763;
 //$beige-light: #D0D1CD;
@@ -23,6 +24,10 @@ $box-radius: 0px;
 $box-shadow: 2px 10px 10px rgba($black, 0.2);
 $box-color: $black;
 
+//Navbar variations
+$navbar-box-shadow-size: 2px 10px 10px;
+$navbar-box-shadow-color: rgba($black, 0.2);
+
 //text
 //$title-color: $black;
 //$text: $black;
@@ -32,6 +37,7 @@ $family-primary: $montserrat;
 //table
 $table-head-background-color: $primary;
 $table-head-cell-color: $beige-lighter;
+$table-row-active-background-color:  $lightgrayblue;
 
 // Update some of Bulma's component variables
 //$body-background-color: $beige-lighter;

@@ -1,101 +1,198 @@
 <template>
-  <div class="visualization">
-    <progress v-if="data.length == 0" class="progress is-primary" max="100"
-      >15%</progress
+  <div
+    class="box"
+    style="height: 100%"
+  >
+    <div
+      class="visualization"
+      style="height: 100%"
     >
-    <Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>
+      <progress
+        v-if="data.length == 0"
+        class="progress is-primary"
+        max="100"
+      >15%</progress>
+      <!--<Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>-->
+      <!--<BaseReadView :reads="data"></BaseReadView>-->
+      <keep-alive>
+        <component
+          :is="dynamicComponent"
+          :data="data"
+          :referenceSeq="referenceSeq"
+        ></component>
+      </keep-alive>
+    </div>
   </div>
 </template>
 
 <script>
-// const axios = require("axios");
+const axios = require("axios");
 const { RemoteFile } = require("generic-filehandle");
 const { IndexedCramFile, CraiIndex } = require("@gmod/cram");
-const { loadCramRecords } = require("../../js/cram_processor.js");
+const { getReads, loadCramRecords } = require("../../js/cram_processor.js");
 //Use indexedfasta library for seqFetch, if using local file (see below)
 // TODO: Update this to use a zipped FA
 const { IndexedFasta } = require("@gmod/indexedfasta");
 
 import Plot from "./BaseSVG.vue";
+import BaseReadView from "./BaseReadView.vue";
 
 export default {
   name: "Visualization",
   props: {
-    loci: String
+    loci: String,
+    group: String
   },
   components: {
-    Plot
+    Plot,
+    BaseReadView
   },
   data() {
     return {
       data: [],
+      histData: [],
       referenceSeq: "",
       index_start: 1,
-      // index_start: 699,
-      // index_end: 700,
-      index_end: 4859,
+      index_end: 2,
+      meStart: 1,
+      meEnd: 1,
       indexedFile: null,
-      publicPath: process.env.BASE_URL
+      publicPath: "", //process.env.BASE_URL,
+      active: "histogram",
+      fasta: null
     };
   },
   mounted() {
-    console.log("mounted");
-    loadCramRecords(this.indexedFile, this.index_start, this.index_end).then(
-      data => {
-        this.data = data;
+    this.$root.$on("updatedView", active => {
+      if (active === "histogram") {
+        this.data = this.histData;
+        this.active = active;
+        // loadCramRecords(
+        //   this.indexedFile,
+        //   this.index_start,
+        //   this.index_end,
+        //   this.meStart,
+        //   this.meEnd
+        // ).then(data => {
+        //   // this.data = null;
+        //   this.data = data;
+
+        // });
+      } else if (active === "5p_junction") {
+        getReads(this.indexedFile, this.meStart, 5, 150).then(data => {
+          this.data = null;
+          this.data = data;
+          this.active = active;
+          this.fasta.getSequenceList().then(d => {
+            let a = d[0];
+            this.fasta
+              .getSequence(a, this.meStart - 150, this.meStart + 150)
+              .then(s => {
+                this.referenceSeq = s;
+              });
+          });
+        });
+      } else if (active === "3p_junction") {
+        getReads(this.indexedFile, this.meEnd, 5, 150).then(data => {
+          this.data = null;
+          this.data = data;
+          this.active = active;
+          this.fasta.getSequenceList().then(d => {
+            let a = d[0];
+            this.fasta
+              .getSequence(a, this.meEnd - 150, this.meEnd + 150)
+              .then(s => {
+                this.referenceSeq = s;
+              });
+          });
+        });
       }
-    );
-    /* processCram(this.indexedFile, this.index_start, this.index_end).then(
-      data => {
-        this.data = data;
-      }
-    ); */
+    });
   },
-  beforeMount() {
-    const t = new IndexedFasta({
-      fasta: new RemoteFile(
-        this.publicPath + "input/fasta/chr22_10743407.fasta"
-      ),
-      fai: new RemoteFile(
-        this.publicPath + "input/fasta/chr22_10743407.fasta.fai"
-      )
-    });
+  watch: {
+    loci: function() {
+      this.data = [];
 
-    // open local files
-    this.indexedFile = new IndexedCramFile({
-      cramFilehandle: new RemoteFile(
-        this.publicPath + "input/cram/chr22_10743407.cramtools.cram"
-      ),
-      index: new CraiIndex({
-        filehandle: new RemoteFile(
-          this.publicPath + "input/cram/chr22_10743407.cramtools.cram.crai"
+      // TODO: Merge all of these async calls together (async.parrallel?)
+      // open local files
+      this.indexedFile = new IndexedCramFile({
+        cramFilehandle: new RemoteFile(
+          this.publicPath + `data/${this.group}/cram/${this.loci}.cram`
+        ),
+        index: new CraiIndex({
+          filehandle: new RemoteFile(
+            this.publicPath + `data/${this.group}/cram/${this.loci}.cram.crai`
+          )
+        }),
+        seqFetch: async (seqId, start, end) => {
+          let a = (await t.getSequenceList())[0];
+          let seq = await t.getSequence(a, start - 1, end);
+          this.referenceSeq = seq;
+          return seq;
+        },
+        checkSequenceMD5: false
+      });
+
+      console.log("updating plot");
+
+      axios
+        .get(this.publicPath + `data/${this.group}/meta/${this.loci}.json`)
+        .then(response => {
+          // TODO: This should be precalculated when the files are generated
+          console.log(response.data);
+          this.index_end =
+            response.data.target_3p[1] -
+            response.data.target_5p[0] +
+            response.data.me_end -
+            response.data.me_start;
+          this.meStart =
+            response.data.target_5p[1] - response.data.target_5p[0];
+          this.meEnd =
+            this.meStart + response.data.me_end - response.data.me_start;
+          loadCramRecords(
+            this.indexedFile,
+            this.index_start,
+            this.index_end,
+            this.meStart,
+            this.meEnd
+          )
+            .then(data => {
+              this.data = data;
+              this.histData = data;
+            })
+            .finally(() => {
+              this.$root.$emit("resetView");
+            });
+        })
+        .catch(function(error) {
+          console.error(error);
+        })
+        .finally(() => {});
+      this.data = [];
+      const t = new IndexedFasta({
+        fasta: new RemoteFile(
+          this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta`
+        ),
+        fai: new RemoteFile(
+          this.publicPath + `data/${this.group}/fasta/${this.loci}.fasta.fai`
         )
-      }),
-      seqFetch: async (seqId, start, end) => {
-        console.log(seqId, start, end);
-        let a = (await t.getSequenceList())[0];
-        let seq = await t.getSequence(a, start - 1, end);
-        this.referenceSeq = seq;
-        // note:
-        // * seqFetch should return a promise for a string, in this instance retrieved from IndexedFasta
-        // * we use start-1 because cram-js uses 1-based but IndexedFasta uses 0-based coordinates
-        // * the seqId is a numeric identifier
-        return seq;
-      },
-      checkSequenceMD5: false
-    });
-
-    /* console.log(indexedFile); */
-    // example of fetching records from an indexed CRAM file.
-    // NOTE: only numeric IDs for the reference sequence are accepted.
-    // For indexedfasta the numeric ID is the order in which the sequence names appear in the header
-
-    // Wrap in an async and then run
+      });
+      this.fasta = t;
+    }
+  },
+  computed: {
+    dynamicComponent() {
+      switch (this.active) {
+        case "histogram":
+          return Plot;
+        case "5p_junction":
+          return BaseReadView;
+        case "3p_junction":
+          return BaseReadView;
+      }
+      return "component-unknown";
+    }
   }
-  /* mounted () { */
-  /* console.log('mounted', this.indexedFile); */
-  /*   this.run(); */
-  /* } */
 };
 </script>
 

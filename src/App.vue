@@ -1,12 +1,15 @@
 <template>
   <div id="app">
     <nav
-      class="navbar is-primary"
+      class="navbar is-primary has-shadow"
       role="navigation"
       aria-label="main navigation"
     >
       <div class="navbar-brand">
-        <a class="navbar-item" href="/">
+        <a
+          class="navbar-item"
+          href="/"
+        >
           <p class="title has-text-light">TranspoScope</p>
         </a>
 
@@ -23,7 +26,10 @@
         </a>
       </div>
 
-      <div id="navbarBasicExample" class="navbar-menu">
+      <div
+        id="navbarBasicExample"
+        class="navbar-menu"
+      >
         <div class="navbar-start">
           <a class="navbar-item">
             Home
@@ -32,71 +38,18 @@
           <a class="navbar-item">
             Documentation
           </a>
+          <router-link to="/">Home</router-link> |
+          <router-link to="/dashboard">Dashboard</router-link> |
+          <router-link to="/about">About</router-link>
         </div>
       </div>
     </nav>
-    <section class="section" style="height:calc(100vh - 52px)">
-      <div class="columns has-text-grey-dark" style="height: 100%">
-        <div class="column is-8" style="height: 100%">
-          <div class="box" style="height: 60%">
-            <Visualization style="height: 100%"></Visualization>
-          </div>
-          <div class="box" style="height: calc(40% - 1.5rem)"></div>
-        </div>
-        <div class="column" style="height: 100%">
-          <div
-            class="box is-paddingless"
-            style="height: 100%;overflow-y: scroll"
-          >
-            <table
-              class="table is-narrow is-fullwidth is-hoverable table is-striped"
-              style="height: 100%"
-            >
-              <thead>
-                <tr>
-                  <th><abbr title="Chromosome-Position">ID</abbr></th>
-                  <th><abbr title="Closest Gene">Gene</abbr></th>
-                  <th><abbr title="Insertion Confidence">P</abbr></th>
-                  <th><abbr title="View region on UCSC">UCSC</abbr></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="i in 35" :key="i">
-                  <td>{{ i }}</td>
-                  <td>B</td>
-                  <td>C</td>
-                  <td>D</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
-      <!-- Hero footer: will stick at the bottom -->
-    </section>
+    <router-view />
   </div>
-  <!--<div id="app">-->
-  <!--  <div><a class="button is-primary">Reads </a></div>-->
-  <!--  <Visualization></Visualization>-->
-  <!--</div>-->
 </template>
 
-<script>
-/* eslint-disable */
-import Visualization from "./components/plot/BasePlot.vue";
-export default {
-  name: "app",
-  components: {
-    Visualization
-  }
-};
-</script>
-
 <style>
-html {
-  overflow-y: hidden;
-}
 #app {
   height: 100vh;
 
