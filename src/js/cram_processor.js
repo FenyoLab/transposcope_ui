@@ -203,60 +203,82 @@ export async function getReads (indexedFile, insertionSite, paddingWidth, refere
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(0, start, end);
     let data = _.map(records, record => {
-      let result_string = "";
+      let result_sequence = [];
+      let insertions = [];
       let clipping_offset = 0;
       let bases = record.getReadBases();
       if (record.readFeatures != undefined) {
         _.sortBy(record.readFeatures, r => r.pos)
           .reverse()
           .forEach(rf => {
-            // process the "read features". this can be used similar to
-            // CIGAR/MD strings in SAM. see CRAM specs for more details.
             if (rf.code === "S") {
               if (rf.pos === 1) {
                 clipping_offset = rf.data.length;
               }
-              result_string =
-                "<span style='color: red'>" +
-                rf.data +
-                "</span>" +
-                bases.slice(rf.pos - 1 + rf.data.length) +
-                result_string;
+              if (bases.slice(rf.pos - 1 + rf.data.length)) {
+                result_sequence.unshift(
+                  ["<span>", bases.slice(rf.pos - 1 + rf.data.length), "</span>"]
+                )
+              }
+              result_sequence.unshift(
+                ["<span style='color: red'>",
+                  rf.data,
+                  "</span>"]);
             } else if (rf.code === "X") {
-              result_string =
-                "<span style='color: orange;font-weight: bold'>" +
-                rf.sub +
-                "</span>" +
-                bases.slice(rf.pos) +
-                result_string;
+              if (bases.slice(rf.pos)) {
+                result_sequence.unshift(
+                  ["<span>", bases.slice(rf.pos), "</span>"]
+                );
+              }
+              result_sequence.unshift(
+                ["<span style='color: orange;font-weight: bold'>",
+                  rf.sub,
+                  "</span>"]);
+
             } else if (rf.code === "D") {
-              result_string =
-                "<span style='color: brown;font-weight: bold'>" +
-                "X".repeat(rf.data) +
-                "</span>" +
-                bases.slice(rf.pos - 1) +
-                result_string;
+              if (bases.slice(rf.pos - 1)) {
+                result_sequence.unshift(
+                  ["<span>", bases.slice(rf.pos - 1), "</span>"]
+                );
+              }
+              result_sequence.unshift([
+                "<span style='color: brown;font-weight: bold'>",
+                "X".repeat(rf.data),
+                "</span>"
+              ])
             } else if (rf.code === "I") {
-              console.log("I in read", rf)
+              if (bases.slice(rf.pos)) {
+                result_sequence.unshift(
+                  ["<span>", bases.slice(rf.pos), "</span>"]
+                );
+              }
+              insertions.push([result_sequence.length, rf.data]);
             } else if (rf.code === "i") {
-              result_string =
-                "<span style='color: purple;font-weight: bold'>" +
-                rf.data +
-                "</span>" +
-                bases.slice(rf.pos) +
-                result_string;
+              if (bases.slice(rf.pos)) {
+                result_sequence.unshift(
+                  ["<span>", bases.slice(rf.pos), "</span>"]
+                );
+              }
+              insertions.push([result_sequence.length, rf.data]);
             } else {
               console.log("UNSEEN REFERENCE FLAG", rf);
             }
             bases = bases.slice(0, rf.pos - 1);
           });
       }
+      result_sequence.unshift(["<span>", bases, "</span>"])
       let padding = " ".repeat(
-        // record.alignmentStart - clipping_offset - start + 110
         (referenceWidth - 1) - ((insertionSite) - (record.alignmentStart - clipping_offset))
       );
-      result_string = padding + bases + result_string;
-      return result_string;
+      let numSections = result_sequence.length;
+      _.forEach(insertions, i => {
+        let idx = numSections - i[0];
+        result_sequence[idx][1] = "<abbr title='" + i[1] + "'>" + result_sequence[idx][1][0] + "</abbr>" + result_sequence[idx][1].slice(1);
+        if (idx - 1 > 0) {
+          result_sequence[idx - 1][1] = result_sequence[idx - 1][1].slice(0, result_sequence[idx - 1][1].length - 1) + "<abbr title='" + i[1] + "'>" + result_sequence[idx - 1][1][result_sequence[idx - 1][1].length - 1] + "</abbr>";
+        }
+      });
+      return padding + _.join(_.map(result_sequence, d => _.join(d, "")), '');
     });
     return data;
   }
