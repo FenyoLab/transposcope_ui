@@ -52,6 +52,7 @@ export default {
       data: [],
       histData: [],
       referenceSeq: "",
+      fullReferenceSeq: "",
       index_start: 1,
       index_end: 2,
       meStart: 1,
@@ -66,18 +67,8 @@ export default {
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
         this.data = this.histData;
+        this.referenceSeq = this.fullReferenceSeq;
         this.active = active;
-        // loadCramRecords(
-        //   this.indexedFile,
-        //   this.index_start,
-        //   this.index_end,
-        //   this.meStart,
-        //   this.meEnd
-        // ).then(data => {
-        //   // this.data = null;
-        //   this.data = data;
-
-        // });
       } else if (active === "5p_junction") {
         getReads(this.indexedFile, this.meStart, 5, 150).then(data => {
           this.data = null;
@@ -127,7 +118,7 @@ export default {
         seqFetch: async (seqId, start, end) => {
           let a = (await t.getSequenceList())[0];
           let seq = await t.getSequence(a, start - 1, end);
-          this.referenceSeq = seq;
+
           return seq;
         },
         checkSequenceMD5: false
@@ -178,6 +169,15 @@ export default {
         )
       });
       this.fasta = t;
+      this.fasta.getSequenceList().then(d => {
+        let a = d[0];
+        this.fasta
+          .getSequence(a, this.index_start - 1, this.index_end)
+          .then(s => {
+            this.referenceSeq = s;
+            this.fullReferenceSeq = s;
+          });
+      });
     }
   },
   computed: {

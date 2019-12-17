@@ -285,7 +285,6 @@ export default {
       this.update();
     });
     this.$root.$on("updateChartType", type => {
-      console.log(type);
       if (type === "stacked") {
         this.order = d3.stackOrderDescending;
         this.offset = d3.stackOffsetNone;
@@ -355,6 +354,7 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
+      console.log(this.referenceSeq.slice(0, 100));
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.gx = this.selections.svg.select(".axis--x");
@@ -509,15 +509,15 @@ export default {
         .enter()
         .append("rect")
         .attr("x", d => currentScale(d.x))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.scaled.y(60))
+        .attr("y", this.padded.height + 5)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
 
       snpRects
         .attr("x", d => currentScale(d.x + 0.5))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.padded.height - this.scaled.y(60))
+        .attr("y", this.padded.height + 5)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
 
@@ -532,15 +532,15 @@ export default {
         .enter()
         .append("rect")
         .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-        .attr("y", this.scaled.y(0))
-        .attr("height", this.scaled.y(10))
+        .attr("y", this.padded.height + 11)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
 
       rects
         .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(dom[0])))
-        .attr("y", this.scaled.y(0))
-        .attr("height", this.scaled.y(10))
+        .attr("y", this.padded.height + 11)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
 
