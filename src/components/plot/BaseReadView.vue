@@ -37,4 +37,9 @@ export default {
   position: sticky;
   top: 0px;
 }
+
+abbr[title] {
+  text-decoration: underline;
+  text-decoration-color: black;
+}
 </style>
