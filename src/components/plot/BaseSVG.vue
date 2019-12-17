@@ -363,6 +363,7 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
+      console.log(this.referenceSeq.slice(0, 100));
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.gx = this.selections.svg.select(".axis--x");
