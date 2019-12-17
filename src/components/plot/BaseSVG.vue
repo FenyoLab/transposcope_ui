@@ -1,5 +1,8 @@
 <template>
-  <div id="plot" style="height: 100%">
+  <div
+    id="plot"
+    style="height: 100%"
+  >
     <article
       class="base-stats message is-small is-dark"
       :style="
@@ -15,7 +18,10 @@
         <p>Stats</p>
       </div>
       <div class="message-body">
-        <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
+        <p
+          v-for="(value, name) in hoverPointStats.bpStat"
+          :key="name"
+        >
           {{ name }}: {{ value }}
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
@@ -39,13 +45,11 @@
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g class="bases" />
 
-        <g
-          :style="{
+        <g :style="{
             transform: `translate(${transform.x}px, ${
               transform.y
             }px) scaleX(${scaleFactor})`
-          }"
-        >
+          }">
           <!-- <path class="line" :d="paths.line" /> -->
           <path
             v-for="orientation in orientations"
@@ -54,7 +58,10 @@
             v-bind:d="paths.area[orientation]"
             v-bind:style="'fill:' + fills[orientation]"
           />
-          <path class="selector" :d="paths.selector" />
+          <path
+            class="selector"
+            :d="paths.selector"
+          />
         </g>
 
         <g class="axis axis--x" />
@@ -70,7 +77,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#fc8803" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#fc8803"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -85,7 +98,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#aa0000" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#aa0000"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -101,7 +120,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#b707e3" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#b707e3"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -116,7 +141,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#888800" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#888800"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -131,7 +162,13 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect x="0" width="5" height="5" y="0" fill="#CC8800" />
+        <rect
+          x="0"
+          width="5"
+          height="5"
+          y="0"
+          fill="#CC8800"
+        />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -257,7 +294,6 @@ export default {
       this.update();
     });
     this.$root.$on("updateChartType", type => {
-      console.log(type);
       if (type === "stacked") {
         this.order = d3.stackOrderDescending;
         this.offset = d3.stackOffsetNone;
@@ -327,6 +363,7 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
+      console.log(this.referenceSeq.slice(0, 100));
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.gx = this.selections.svg.select(".axis--x");
@@ -477,15 +514,15 @@ export default {
         .enter()
         .append("rect")
         .attr("x", d => currentScale(d.x))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.scaled.y(60))
+        .attr("y", this.padded.height + 5)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
 
       snpRects
         .attr("x", d => currentScale(d.x + 0.5))
-        .attr("y", this.scaled.y(50))
-        .attr("height", this.padded.height - this.scaled.y(60))
+        .attr("y", this.padded.height + 5)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
 
@@ -500,15 +537,15 @@ export default {
         .enter()
         .append("rect")
         .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-        .attr("y", this.scaled.y(0))
-        .attr("height", this.scaled.y(10))
+        .attr("y", this.padded.height + 11)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
 
       rects
         .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(dom[0])))
-        .attr("y", this.scaled.y(0))
-        .attr("height", this.scaled.y(10))
+        .attr("y", this.padded.height + 11)
+        .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
 
