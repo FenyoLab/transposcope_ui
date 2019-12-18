@@ -11,14 +11,14 @@
         v-if="data.length == 0"
         class="progress is-primary"
         max="100"
-      >15%</progress>
-      <!--<Plot v-else v-bind:data="data" :referenceSeq="referenceSeq"></Plot>-->
-      <!--<BaseReadView :reads="data"></BaseReadView>-->
+      ></progress>
       <keep-alive>
         <component
+          v-if="data.length != 0"
           :is="dynamicComponent"
           :data="data"
           :referenceSeq="referenceSeq"
+          :info="aesthetics"
         ></component>
       </keep-alive>
     </div>
@@ -52,7 +52,6 @@ export default {
       data: [],
       histData: [],
       referenceSeq: "",
-      fullReferenceSeq: "",
       index_start: 1,
       index_end: 2,
       meStart: 1,
@@ -60,14 +59,14 @@ export default {
       indexedFile: null,
       publicPath: "", //process.env.BASE_URL,
       active: "histogram",
-      fasta: null
+      fasta: null,
+      aesthetics: {}
     };
   },
   mounted() {
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
         this.data = this.histData;
-        this.referenceSeq = this.fullReferenceSeq;
         this.active = active;
       } else if (active === "5p_junction") {
         getReads(this.indexedFile, this.meStart, 5, 150).then(data => {
@@ -118,7 +117,7 @@ export default {
         seqFetch: async (seqId, start, end) => {
           let a = (await t.getSequenceList())[0];
           let seq = await t.getSequence(a, start - 1, end);
-
+          this.referenceSeq = seq;
           return seq;
         },
         checkSequenceMD5: false
@@ -131,6 +130,9 @@ export default {
         .then(response => {
           // TODO: This should be precalculated when the files are generated
           console.log(response.data);
+          // TODO: These should be precalculated
+
+          response.data.info;
           this.index_end =
             response.data.target_3p[1] -
             response.data.target_5p[0] +
@@ -140,6 +142,10 @@ export default {
             response.data.target_5p[1] - response.data.target_5p[0];
           this.meEnd =
             this.meStart + response.data.me_end - response.data.me_start;
+          this.aesthetics = {
+            fivePrimeSite: [this.meStart, this.meStart + 1],
+            threePrimeSite: [this.meEnd - 1, this.meEnd]
+          };
           loadCramRecords(
             this.indexedFile,
             this.index_start,
@@ -169,15 +175,6 @@ export default {
         )
       });
       this.fasta = t;
-      this.fasta.getSequenceList().then(d => {
-        let a = d[0];
-        this.fasta
-          .getSequence(a, this.index_start - 1, this.index_end)
-          .then(s => {
-            this.referenceSeq = s;
-            this.fullReferenceSeq = s;
-          });
-      });
     }
   },
   computed: {

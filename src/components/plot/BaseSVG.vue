@@ -49,6 +49,16 @@
             v-bind:d="paths.area[orientation]"
             v-bind:style="'fill:' + fills[orientation]"
           />
+          <!-- TODO: add a color parameter -->
+          <rect
+            v-for="(region, name) in paths.rects"
+            :key=name
+            :x="scaled.x(region[0])"
+            :width="scaled.x(region[1] - region[0])"
+            :y="0"
+            :height="padded.height"
+            style="fill:#FF0000;fill-opacity:0.2"
+          />
           <path
             class="selector"
             :d="paths.selector"
@@ -179,13 +189,14 @@ export default {
   props: {
     data: Array,
     referenceSeq: String,
+    info: Object,
     margin: {
       type: Object,
       default: () => ({
-        left: 20,
-        right: 0,
+        left: 25,
+        right: 5,
         top: 10,
-        bottom: 20
+        bottom: 25
       })
     }
   },
@@ -194,7 +205,8 @@ export default {
       width: 0,
       height: 0,
       paths: {
-        line: "",
+        line: { "5p": "" },
+        rects: {},
         area: { gg: "", g_g: "", gj: "", gl_l: "", gl_g: "" },
         selector: ""
       },
@@ -354,7 +366,6 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
-      console.log(this.referenceSeq.slice(0, 100));
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.gx = this.selections.svg.select(".axis--x");
@@ -394,15 +405,15 @@ export default {
       this.axis.x = d3
         .axisTop()
         .scale(this.scaled.x)
-        .ticks((this.padded.width / 1000) * 5)
+        .ticks((this.padded.width / 1000) * 5, "~s")
         .tickSize(-this.padded.height)
-        .tickPadding(-this.padded.height - this.margin.bottom * 0.75);
+        .tickPadding(-this.padded.height - 10);
 
       let yMax = Math.floor(this.scaled.y.domain()[1]) || 0;
       this.axis.y = d3
         .axisLeft()
         .scale(this.scaled.y)
-        .ticks(yMax / 8 > 1 ? 8 : yMax % 8)
+        .ticks(yMax / 8 > 1 ? 8 : yMax % 8, "~s")
         .tickSize(-this.padded.width)
         .tickPadding(this.margin.left * 0.25)
         .tickFormat(d3.format("d"));
@@ -443,10 +454,12 @@ export default {
           this.snps.push({ x: index, snp: dominant[0] });
         }
       });
+      _.forEach(this.info, (position, name) => {
+        this.paths.rects[name] = position;
+      });
     },
     update() {
       this.points = this.stacks;
-      //this.paths.line = this.createLine(this.points);
       _.forEach(this.orientations, (d, i) => {
         this.paths.area[d] = this.createArea(this.points[i]);
       });
@@ -509,14 +522,14 @@ export default {
         .enter()
         .append("rect")
         .attr("x", d => currentScale(d.x))
-        .attr("y", this.padded.height + 5)
+        .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
 
       snpRects
         .attr("x", d => currentScale(d.x + 0.5))
-        .attr("y", this.padded.height + 5)
+        .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d.snp]);
@@ -532,14 +545,14 @@ export default {
         .enter()
         .append("rect")
         .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-        .attr("y", this.padded.height + 11)
+        .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
 
       rects
         .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(dom[0])))
-        .attr("y", this.padded.height + 11)
+        .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
         .style("fill", d => mapping[d]);
@@ -574,7 +587,7 @@ export default {
 }
 
 .axis .domain {
-  stroke: #ff0000;
+  /* stroke: #ff0000; */
   opacity: 0.2;
 }
 </style>

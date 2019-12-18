@@ -135,8 +135,8 @@ export default {
 };
 </script>
 
-<style>
-.loci {
+<style scoped>
+tr {
   cursor: pointer;
 }
 .arrow {
