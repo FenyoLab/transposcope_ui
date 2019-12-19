@@ -54,8 +54,9 @@ export default {
   name: "dashboard",
   data() {
     return {
-      loci: "chr22_11376996",
-      group: "ungrouped/ungrouped/melt_test",
+      loci: "",
+      // group: "ungrouped/ungrouped/melt_test",
+      group: "ungrouped/ungrouped/tipseq_test",
       meStart: 1000,
       meEnd: 2991
     };
@@ -68,6 +69,7 @@ export default {
   },
   methods: {
     changeLoci(loci) {
+      // TODO: change this back to :
       this.loci = loci.replace(":", "_");
     }
   }

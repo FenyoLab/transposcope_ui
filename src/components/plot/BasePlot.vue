@@ -117,7 +117,7 @@ export default {
         seqFetch: async (seqId, start, end) => {
           let a = (await t.getSequenceList())[0];
           let seq = await t.getSequence(a, start - 1, end);
-          this.referenceSeq = seq;
+          // this.referenceSeq = seq;
           return seq;
         },
         checkSequenceMD5: false
@@ -128,24 +128,61 @@ export default {
       axios
         .get(this.publicPath + `data/${this.group}/meta/${this.loci}.json`)
         .then(response => {
-          // TODO: This should be precalculated when the files are generated
           console.log(response.data);
           // TODO: These should be precalculated
 
-          response.data.info;
-          this.index_end =
-            response.data.target_3p[1] -
-            response.data.target_5p[0] +
-            response.data.me_end -
-            response.data.me_start;
-          this.meStart =
-            response.data.target_5p[1] - response.data.target_5p[0];
-          this.meEnd =
-            this.meStart + response.data.me_end - response.data.me_start;
-          this.aesthetics = {
-            fivePrimeSite: [this.meStart, this.meStart + 1],
-            threePrimeSite: [this.meEnd - 1, this.meEnd]
-          };
+          if (
+            response.data.target_5p != null &&
+            response.data.target_3p == null
+          ) {
+            this.index_end =
+              response.data.target_5p[1] -
+              response.data.target_5p[0] +
+              (response.data.me_end - response.data.me_start);
+            this.meStart =
+              response.data.target_5p[1] - response.data.target_5p[0];
+            this.meEnd =
+              this.meStart +
+              response.data.me_end -
+              response.data.me_start +
+              1000;
+
+            this.aesthetics = {
+              fivePrimeSite: [this.meStart, this.meStart + 1]
+              // threePrimeSite: [this.meEnd - 1, this.meEnd]
+            };
+          } else if (
+            response.data.target_5p == null &&
+            response.data.target_3p != null
+          ) {
+            this.meStart = 0;
+            this.meEnd = response.data.me_end - response.data.me_start;
+
+            this.index_end =
+              response.data.target_3p[1] -
+              response.data.target_3p[0] +
+              (response.data.me_end - response.data.me_start);
+
+            this.aesthetics = {
+              // fivePrimeSite: [this.meStart, this.meStart + 1],
+              threePrimeSite: [this.meEnd - 1, this.meEnd]
+            };
+          } else {
+            this.index;
+            this.index_end =
+              response.data.target_3p[1] -
+              response.data.target_5p[0] +
+              response.data.me_end -
+              response.data.me_start;
+            this.meStart =
+              response.data.target_5p[1] - response.data.target_5p[0];
+            this.meEnd =
+              this.meStart + response.data.me_end - response.data.me_start;
+            this.aesthetics = {
+              fivePrimeSite: [this.meStart, this.meStart + 1],
+              threePrimeSite: [this.meEnd - 1, this.meEnd]
+            };
+          }
           loadCramRecords(
             this.indexedFile,
             this.index_start,

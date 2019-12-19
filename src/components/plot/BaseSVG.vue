@@ -126,7 +126,7 @@
           width="5"
           height="5"
           y="0"
-          fill="#b707e3"
+          fill="#3399cc"
         />
         <path
           stroke="white"
@@ -235,19 +235,19 @@ export default {
       scaleFactor: 1,
       baseFactor: 100,
       fills: {
-        gg: "#999999",
-        gn: "#888800",
-        g_g: "#ff2222",
-        g_jG: "#aa0000",
-        g_jJ: "url(#Pg_jJ",
-        gjJ: "url(#PgjJ)",
-        gjG: "#fc8803",
-        glL: "url(#PglL)",
-        glG: "#3399cc",
+        gg: "#999999", //Gray
+        gn: "#888800", // Green
+        g_g: "#ff2222", // Red
+        g_jG: "#aa0000", // Red
+        g_jJ: "url(#Pg_jJ)", // Red Striped
+        gjJ: "url(#PgjJ)", // orange striped
+        gjG: "#fc8803", // orange
+        glL: "url(#PglL)", // Blue
+        glG: "#b707e3", // Purple
         jn: "url(#Pjn)",
         jj: "url(#Pjj)",
-        jlJ: "#FF0000",
-        jlL: "#FF0000",
+        jlJ: "url(#PgjJ)",
+        jlL: "url(#PgjJ)",
         j_j3: "#FF0000",
         j_j5: "#FF0000",
         ln: "#FF0000",
