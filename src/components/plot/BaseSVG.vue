@@ -53,11 +53,13 @@
           <rect
             v-for="(region, name) in paths.rects"
             :key=name
-            :x="scaled.x(region[0])"
+            :x="scaled.x(region[0]+0.5)"
             :width="scaled.x(region[1] - region[0])"
             :y="0"
             :height="padded.height"
-            style="fill:#FF0000;fill-opacity:0.2"
+            stroke="#0000FF"
+            stroke-width="0.1"
+            style="fill:#0000FF;fill-opacity:0.2"
           />
           <path
             class="selector"
@@ -252,9 +254,6 @@ export default {
         j_j5: "#FF0000",
         ln: "#FF0000",
         ll: "#FF0000"
-        // ln
-        // ll
-        // j_j
       },
       hoverPointStats: null,
       snps: [],
@@ -368,6 +367,16 @@ export default {
     initialize() {
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
+      this.selections.svg
+        .select(".snpbases")
+        .selectAll("rect")
+        .remove();
+
+      this.selections.svg
+        .select(".bases")
+        .selectAll("rect")
+        .remove();
+
       this.selections.gx = this.selections.svg.select(".axis--x");
       this.selections.gy = this.selections.svg.select(".axis--y");
 
@@ -375,7 +384,7 @@ export default {
       this.scaled.y = d3.scaleLinear().range([this.padded.height, 0]);
 
       this.scaled.x.domain(d3.extent(this.data, (d, i) => i));
-
+      console.log(this.scaled.x.domain());
       this.stacks = d3
         .stack()
 
@@ -413,7 +422,7 @@ export default {
       this.axis.y = d3
         .axisLeft()
         .scale(this.scaled.y)
-        .ticks(yMax / 8 > 1 ? 8 : yMax % 8, "~s")
+        .ticks(yMax / 8 > 1 ? 8 : yMax, "~s")
         .tickSize(-this.padded.width)
         .tickPadding(this.margin.left * 0.25)
         .tickFormat(d3.format("d"));
@@ -440,8 +449,11 @@ export default {
         .extent([[0, 0], [this.width, 0]])
         .on("zoom", this.zoomed);
 
+      this.selections.svg.call(this.zoom.transform, d3.zoomIdentity);
+
       this.selections.svg.call(this.zoom);
 
+      this.snps = [];
       _.forEach(this.data.slice(1), (position, index) => {
         let dominant = _.chain(position.bpStat)
           .entries()

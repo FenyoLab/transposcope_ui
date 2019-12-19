@@ -52,6 +52,7 @@ export default {
       data: [],
       histData: [],
       referenceSeq: "",
+      fullReferenceSeq: "",
       index_start: 1,
       index_end: 2,
       meStart: 1,
@@ -67,6 +68,7 @@ export default {
     this.$root.$on("updatedView", active => {
       if (active === "histogram") {
         this.data = this.histData;
+        this.referenceSeq = this.fullReferenceSeq;
         this.active = active;
       } else if (active === "5p_junction") {
         getReads(this.indexedFile, this.meStart, 5, 150).then(data => {
@@ -117,7 +119,6 @@ export default {
         seqFetch: async (seqId, start, end) => {
           let a = (await t.getSequenceList())[0];
           let seq = await t.getSequence(a, start - 1, end);
-          // this.referenceSeq = seq;
           return seq;
         },
         checkSequenceMD5: false
@@ -139,6 +140,7 @@ export default {
               response.data.target_5p[1] -
               response.data.target_5p[0] +
               (response.data.me_end - response.data.me_start);
+            console.log(this.index_end);
             this.meStart =
               response.data.target_5p[1] - response.data.target_5p[0];
             this.meEnd =
@@ -148,14 +150,14 @@ export default {
               1000;
 
             this.aesthetics = {
-              fivePrimeSite: [this.meStart, this.meStart + 1]
-              // threePrimeSite: [this.meEnd - 1, this.meEnd]
+              fivePrimeSite: [this.meStart, this.meStart + 1],
+              threePrimeSite: []
             };
           } else if (
             response.data.target_5p == null &&
             response.data.target_3p != null
           ) {
-            this.meStart = 0;
+            this.meStart = -1000;
             this.meEnd = response.data.me_end - response.data.me_start;
 
             this.index_end =
@@ -164,7 +166,7 @@ export default {
               (response.data.me_end - response.data.me_start);
 
             this.aesthetics = {
-              // fivePrimeSite: [this.meStart, this.meStart + 1],
+              fivePrimeSite: [],
               threePrimeSite: [this.meEnd - 1, this.meEnd]
             };
           } else {
@@ -212,6 +214,15 @@ export default {
         )
       });
       this.fasta = t;
+      this.fasta.getSequenceList().then(d => {
+        let a = d[0];
+        this.fasta
+          .getSequence(a, this.index_start - 1, this.index_end + 1)
+          .then(s => {
+            this.referenceSeq = s;
+            this.fullReferenceSeq = s;
+          });
+      });
     }
   },
   computed: {
