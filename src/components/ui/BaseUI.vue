@@ -27,7 +27,10 @@
     </div>
     <div style="height: 80%;overflow-x: hidden;overflow-y:auto">
       <keep-alive>
-        <component :is="dynamicComponent"></component>
+        <component
+          :type="type"
+          :is="dynamicComponent"
+        ></component>
       </keep-alive>
     </div>
   </div>
@@ -40,6 +43,9 @@ import DisplaySettings from "./tabs/BaseDisplay.vue";
 
 export default {
   name: "BaseUI",
+  props: {
+    type: String
+  },
   data: () => {
     return {
       active: "display"

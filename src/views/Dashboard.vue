@@ -15,7 +15,7 @@
         <Visualization
           style="height: 60%"
           :group="group"
-          :loci="loci"
+          :locus="locus"
         />
 
         <div
@@ -26,14 +26,14 @@
             class="column is-two-thirds"
             style="height: 100%"
           >
-            <BaseUI />
+            <BaseUI :type="type" />
 
           </div>
           <div class="column">
             <BaseTable
               :group="group"
-              :loci="loci"
-              v-on:updateSelectedLoci="changeLoci"
+              :locus="locus"
+              v-on:updateSelectedLocus="changeLoci"
             />
 
           </div>
@@ -54,11 +54,10 @@ export default {
   name: "dashboard",
   data() {
     return {
-      loci: "",
+      locus: "",
       // group: "ungrouped/ungrouped/melt_test",
       group: "ungrouped/ungrouped/tipseq_test",
-      meStart: 1000,
-      meEnd: 2991
+      type: "tipseq"
     };
   },
   components: {
@@ -68,9 +67,9 @@ export default {
     NavBar
   },
   methods: {
-    changeLoci(loci) {
+    changeLoci(locus) {
       // TODO: change this back to :
-      this.loci = loci.replace(":", "_");
+      this.locus = locus.replace(":", "_");
     }
   }
 };

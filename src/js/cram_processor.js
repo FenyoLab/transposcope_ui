@@ -57,13 +57,13 @@ function processReads (read1, read2) {
 }
 
 function classifyRead (read, meStartCoord, meEndCoord) {
-  meStartCoord += 1;
-  meEndCoord += 1;
+  // meStartCoord += 1;
+  // meEndCoord += 1;
   if (read.aStart <= meStartCoord && read.aEnd <= meStartCoord) return "G5";
   else if (read.aStart >= meEndCoord && read.aEnd >= meEndCoord) return "G3";
   else if (meStartCoord < read.aStart && read.aEnd < meEndCoord) return "L";
-  else if (read.aStart < meStartCoord && read.aEnd > meStartCoord) return "J5";
-  else if (read.aStart < meEndCoord && read.aEnd > meEndCoord) return "J3";
+  else if (read.aStart <= meStartCoord && read.aEnd >= meStartCoord) return "J5";
+  else if (read.aStart <= meEndCoord && read.aEnd >= meEndCoord) return "J3";
   // if (read.rStart <= meStartCoord && read.rEnd <= meStartCoord) return "G5";
   // else if (read.rStart >= meEndCoord && read.rEnd >= meEndCoord) return "G3";
   // else if (meStartCoord < read.rStart && read.rEnd < meEndCoord) return "L";
@@ -118,7 +118,7 @@ function classifyResults (reads, meStartCoord, meEndCoord) {
     "unmapped"
   ];
   if (type[0] === "unmapped" && type[1] === "unmapped") {
-    console.log("double unmapped", reads);
+    console.log("double unmapped", meStartCoord, meEndCoord, r1Type, r2Type, reads);
   }
 
   return type;

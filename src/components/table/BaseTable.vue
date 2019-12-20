@@ -7,11 +7,11 @@
       class="input"
       type="text"
       v-model="filterKey"
-      placeholder="Search loci"
+      placeholder="Search locus"
     >
     <table class=" table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
       <thead>
-        <tr class="loci">
+        <tr class="locus">
           <th
             v-for="key in columns"
             :key="key"
@@ -34,7 +34,7 @@
           v-for="(entry, idx) in  filteredLoci"
           :key="idx"
           @click="selectLoci(idx, entry['ID'])"
-          :class="{ 'loci is-selected': idx==selected_idx}"
+          :class="{ 'locus is-selected': idx==selected_idx}"
         >
           <td
             v-for="key in columns"
@@ -58,7 +58,7 @@ export default {
   name: "BaseTable",
   props: {
     group: String,
-    loci: String
+    locus: String
   },
   data: function() {
     var sortOrders = {};
@@ -69,10 +69,10 @@ export default {
     return {
       columns: header,
       contents: [{ ID: "A", Gene: "B", P: "C" }],
-      selected_idx: 0,
       sortKey: "",
       filterKey: "",
-      sortOrders: sortOrders
+      sortOrders: sortOrders,
+      selected_idx: 0
     };
   },
   mounted() {
@@ -86,10 +86,10 @@ export default {
         });
         this.sortOrders = sortOrders;
         // FIX: This should be a dictionary so that ID is extracted
-        this.contents = response.data.data.map(loci =>
-          _.zipObject(this.columns, loci)
+        this.contents = response.data.data.map(locus =>
+          _.zipObject(this.columns, locus)
         );
-        this.$emit("updateSelectedLoci", this.contents[0][this.columns[0]]);
+        this.$emit("updateSelectedLocus", this.contents[0][this.columns[0]]);
       })
       .catch(function(error) {
         console.error(error);
@@ -99,6 +99,7 @@ export default {
   computed: {
     filteredLoci: function() {
       var sortKey = this.sortKey;
+
       var order = this.sortOrders[sortKey] || 1;
       var loci = _.filter(this.contents, o => {
         return o.ID.includes(this.filterKey);
@@ -119,13 +120,28 @@ export default {
           return (a === b ? 0 : a > b ? 1 : -1) * order;
         });
       }
+
       return loci;
+    }
+  },
+  watch: {
+    filteredLoci: function() {
+      this.selected_idx = _.findIndex(
+        this.filteredLoci,
+        locus => locus.ID === this.locus.replace("_", ":")
+      );
+    },
+    locus: function() {
+      this.selected_idx = _.findIndex(
+        this.filteredLoci,
+        locus => locus.ID === this.locus.replace("_", ":")
+      );
     }
   },
   methods: {
     selectLoci: function(idx, loci) {
       this.selected_idx = idx;
-      this.$emit("updateSelectedLoci", loci);
+      this.$emit("updateSelectedLocus", loci);
     },
     sortBy: function(key) {
       this.sortKey = key;
