@@ -4,25 +4,52 @@
       class="box"
       style="height: 100%"
     >
-      <select v-model='outer'>
-        <option
-          v-for="(child, key, idx) in samples"
-          :key="idx"
-        > {{key}} </option>
-      </select>
-      <select v-model='inner'>
-        <option
-          v-for="(child, key, idx) in innerGroup"
-          :key="idx"
-        > {{key}} </option>
-      </select>
-      <select v-model='experiment'>
-        <option
-          v-for="(child, key, idx) in experimentGroup"
-          :key="idx"
-        > {{key}} </option>
-      </select>
-      {{ this.outer + "/" + this.inner + "/" + this.experiment}}
+      <div class="select">
+        <select>
+          <option> A </option>
+          <option> B </option>
+        </select>
+      </div>
+      <!-- <div class="select">
+        <select
+          v-model='outer'
+          lazy
+        >
+          <option
+            v-for="(child, key, idx) in samples"
+            :key="idx"
+          > {{key}} </option>
+        </select>
+      </div>
+      <div
+        class="select is-multiple"
+        v-if="outer"
+      >
+        <select
+          v-model='inner'
+          lazy
+        >
+          <option
+            v-for="(child, key, idx) in samples[outer]"
+            :key="idx"
+          > {{key}} </option>
+        </select>
+      </div>
+      <div
+        class="select"
+        v-if="inner"
+      >
+        <select
+          v-model='experiment'
+          lazy
+        >
+          <option
+            v-for="(child, key, idx) in samples[outer][inner]"
+            :key="idx"
+          > {{key}} </option>
+        </select>
+      </div>
+      {{ this.outer + "/" + this.inner + "/" + this.experiment}} -->
     </div>
   </div>
 </template>
@@ -45,29 +72,21 @@ export default {
     axios
       .get(process.env.BASE_URL + `data/manifest.json`)
       .then(response => {
+        console.log(response.data);
         this.samples = response.data;
       })
       .catch(function(error) {
         console.error(error);
       })
       .finally(function() {});
-  },
-  computed: {
-    innerGroup: function() {
-      if (this.outer) {
-        return this.samples[this.outer];
-      } else {
-        return [];
-      }
-    },
-    experimentGroup: function() {
-      console.log(this.samples);
-      if (this.inner && this.outer) {
-        return this.samples[this.outer][this.inner];
-      } else {
-        return [];
-      }
-    }
   }
+  // computed: {
+  //   innerGroup: function() {
+  //     return this.samples[this.outer];
+  //   },
+  //   experimentGroup: function() {
+  //     return this.samples[this.outer][this.inner];
+  //   }
+  // }
 };
 </script>

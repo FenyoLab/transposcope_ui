@@ -50,7 +50,7 @@
 </template>
 
 <script>
-/*eslint no-console: ["error", {allow: ["warn", "error"]}] */
+/*eslint no-console: ["error", {allow: ["warn", "error", "log"]}] */
 const axios = require("axios");
 const _ = require("lodash");
 
@@ -68,33 +68,12 @@ export default {
     });
     return {
       columns: header,
-      contents: [{ ID: "A", Gene: "B", P: "C" }],
+      contents: [{ ID: "", Gene: "", P: "" }],
       sortKey: "",
       filterKey: "",
       sortOrders: sortOrders,
       selected_idx: 0
     };
-  },
-  mounted() {
-    axios
-      .get(process.env.BASE_URL + `data/${this.group}/table_info.json`)
-      .then(response => {
-        this.columns = response.data.heading;
-        var sortOrders = {};
-        this.columns.forEach(function(key) {
-          sortOrders[key] = 1;
-        });
-        this.sortOrders = sortOrders;
-        // FIX: This should be a dictionary so that ID is extracted
-        this.contents = response.data.data.map(locus =>
-          _.zipObject(this.columns, locus)
-        );
-        this.$emit("updateSelectedLocus", this.contents[0][this.columns[0]]);
-      })
-      .catch(function(error) {
-        console.error(error);
-      })
-      .finally(function() {});
   },
   computed: {
     filteredLoci: function() {
@@ -126,22 +105,55 @@ export default {
   },
   watch: {
     filteredLoci: function() {
-      this.selected_idx = _.findIndex(
+      this.selected_idx = this.findLocus();
+    },
+    locus: function() {
+      if (!this.locus) {
+        console.log("redirecting on load");
+        this.selectLoci(0, this.filteredLoci[0].ID);
+      }
+      this.selected_idx = this.findLocus();
+    },
+    group: function() {
+      axios
+        .get(process.env.BASE_URL + `data/${this.group}/table_info.json`)
+        .then(response => {
+          this.columns = response.data.heading;
+          var sortOrders = {};
+          this.columns.forEach(function(key) {
+            sortOrders[key] = 1;
+          });
+          this.sortOrders = sortOrders;
+          // FIX: This should be a dictionary so that ID is extracted
+          this.contents = response.data.data.map(locus =>
+            _.zipObject(this.columns, locus)
+          );
+          console.log(this.selected_idx, this.findLocus(), this.locus);
+          if (!this.locus) {
+            console.log("redirecting on load");
+            this.selectLoci(0, this.filteredLoci[0].ID);
+          }
+        })
+        .catch(function(error) {
+          console.error(error);
+        })
+        .finally(function() {});
+    }
+  },
+  methods: {
+    findLocus: function() {
+      return _.findIndex(
         this.filteredLoci,
         locus => locus.ID === this.locus.replace("_", ":")
       );
     },
-    locus: function() {
-      this.selected_idx = _.findIndex(
-        this.filteredLoci,
-        locus => locus.ID === this.locus.replace("_", ":")
-      );
-    }
-  },
-  methods: {
-    selectLoci: function(idx, loci) {
-      this.selected_idx = idx;
-      this.$emit("updateSelectedLocus", loci);
+    selectLoci: function(idx, locus) {
+      if (this.selected_idx !== idx) {
+        this.$router.push({
+          // path: this.group.split("/")[2],
+          query: { locus: locus.replace(":", "-") }
+        });
+      }
     },
     sortBy: function(key) {
       this.sortKey = key;

@@ -40,28 +40,32 @@
 <script>
 export default {
   name: "Display",
-  props: {
-    type: String
-  },
+  props: {},
   data() {
     return {
-      currentView: "histogram"
+      currentView: "histogram",
+      type: ""
     };
   },
   mounted() {
     this.$root.$on("resetView", () => {
-      console.log("resetting view");
       this.currentView = "histogram";
+    });
+    this.$root.$on("setType", type => {
+      console.log("SETTING TYPE");
+      this.type = type;
     });
   },
   watch: {
     currentView() {
       this.$root.$emit("updatedView", this.currentView);
+    },
+    type() {
+      console.log(this.type);
     }
   },
   computed: {
     isTipseq() {
-      console.log(this.type);
       return this.type === "tipseq";
     }
   }

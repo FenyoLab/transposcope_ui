@@ -26,14 +26,13 @@
             class="column is-two-thirds"
             style="height: 100%"
           >
-            <BaseUI :type="type" />
+            <BaseUI />
 
           </div>
           <div class="column">
             <BaseTable
               :group="group"
               :locus="locus"
-              v-on:updateSelectedLocus="changeLoci"
             />
 
           </div>
@@ -50,14 +49,15 @@ import BaseUI from "../components/ui/BaseUI.vue";
 import Visualization from "../components/plot/BasePlot.vue";
 import NavBar from "../components/navbar/BaseNavbar.vue";
 
+const _ = require("lodash");
+
 export default {
   name: "dashboard",
   data() {
     return {
       locus: "",
       // group: "ungrouped/ungrouped/melt_test",
-      group: "ungrouped/ungrouped/tipseq_test",
-      type: "tipseq"
+      group: ""
     };
   },
   components: {
@@ -66,10 +66,29 @@ export default {
     Visualization,
     NavBar
   },
+  mounted() {
+    this.group = _.join(_.values(this.$route.params), "/");
+    console.log(this.group);
+    if (this.$route.query.locus)
+      this.locus = this.$route.query.locus.replace("-", "_");
+    console.log(this.$route);
+  },
   methods: {
     changeLoci(locus) {
       // TODO: change this back to :
       this.locus = locus.replace(":", "_");
+    }
+  },
+  watch: {
+    $route: function() {
+      this.group = _.join(_.values(this.$route.params), "/");
+      console.log(this.group);
+      if (this.$route.query.locus)
+        this.locus = this.$route.query.locus.replace("-", "_");
+      else {
+        this.locus = "";
+      }
+      console.log(this.$route);
     }
   }
 };

@@ -133,118 +133,131 @@ export default {
   },
   watch: {
     locus: function() {
-      this.data = [];
+      console.log("updating plot", this.locus);
+      if (this.locus) {
+        let fileError = null;
+        axios
+          .get(this.publicPath + `data/${this.group}/meta/${this.locus}.json`)
+          .then(response => {
+            console.log(response.data);
+            // TODO: These should be precalculated
+            this.meStrand = response.data.me_strand;
+            this.aesthetics = response.data.regions;
+            if (
+              response.data.target_5p != null &&
+              response.data.target_3p == null
+            ) {
+              this.index_end =
+                response.data.target_5p[1] -
+                response.data.target_5p[0] +
+                (response.data.me_end - response.data.me_start);
+              this.meStart =
+                response.data.target_5p[1] - response.data.target_5p[0];
+              this.meEnd =
+                this.meStart +
+                response.data.me_end -
+                response.data.me_start +
+                1000;
+              this.meThreePrime = this.meStart;
+            } else if (
+              response.data.target_5p == null &&
+              response.data.target_3p != null
+            ) {
+              this.meStart = -1000;
+              this.meEnd = response.data.me_end - response.data.me_start;
 
-      // TODO: Merge all of these async calls together (async.parrallel?)
-      // open local files
-      this.indexedFile = new IndexedCramFile({
-        cramFilehandle: new RemoteFile(
-          this.publicPath + `data/${this.group}/cram/${this.locus}.cram`
-        ),
-        index: new CraiIndex({
-          filehandle: new RemoteFile(
-            this.publicPath + `data/${this.group}/cram/${this.locus}.cram.crai`
-          )
-        }),
-        seqFetch: async (seqId, start, end) => {
-          let a = (await t.getSequenceList())[0];
-          let seq = await t.getSequence(a, start - 1, end);
-          return seq;
-        },
-        checkSequenceMD5: false
-      });
-
-      console.log("updating plot");
-
-      axios
-        .get(this.publicPath + `data/${this.group}/meta/${this.locus}.json`)
-        .then(response => {
-          console.log(response.data);
-          // TODO: These should be precalculated
-          this.meStrand = response.data.me_strand;
-          this.aesthetics = response.data.regions;
-          if (
-            response.data.target_5p != null &&
-            response.data.target_3p == null
-          ) {
-            this.index_end =
-              response.data.target_5p[1] -
-              response.data.target_5p[0] +
-              (response.data.me_end - response.data.me_start);
-            this.meStart =
-              response.data.target_5p[1] - response.data.target_5p[0];
-            this.meEnd =
-              this.meStart +
-              response.data.me_end -
-              response.data.me_start +
-              1000;
-            this.meThreePrime = this.meStart;
-          } else if (
-            response.data.target_5p == null &&
-            response.data.target_3p != null
-          ) {
-            this.meStart = -1000;
-            this.meEnd = response.data.me_end - response.data.me_start;
-
-            this.index_end =
-              response.data.target_3p[1] -
-              response.data.target_3p[0] +
-              (response.data.me_end - response.data.me_start);
-            this.meThreePrime = this.meEnd;
-          } else {
-            this.index;
-            this.index_end =
-              response.data.target_3p[1] -
-              response.data.target_5p[0] +
-              response.data.me_end -
-              response.data.me_start;
-            this.meStart =
-              response.data.target_5p[1] - response.data.target_5p[0];
-            this.meEnd =
-              this.meStart + response.data.me_end - response.data.me_start;
-            this.meFivePrime =
-              response.data.me_strand === "+" ? this.meStart : this.meEnd;
-            this.meThreePrime =
-              response.data.me_strand === "-" ? this.meEnd : this.meStart;
-          }
-          loadCramRecords(
-            this.indexedFile,
-            this.index_start,
-            this.index_end,
-            this.meStart,
-            this.meEnd
-          )
-            .then(data => {
-              this.data = data;
-              this.histData = data;
-            })
-            .finally(() => {
-              this.$root.$emit("resetView");
+              this.index_end =
+                response.data.target_3p[1] -
+                response.data.target_3p[0] +
+                (response.data.me_end - response.data.me_start);
+              this.meThreePrime = this.meEnd;
+            } else {
+              this.index;
+              this.index_end =
+                response.data.target_3p[1] -
+                response.data.target_5p[0] +
+                response.data.me_end -
+                response.data.me_start;
+              this.meStart =
+                response.data.target_5p[1] - response.data.target_5p[0];
+              this.meEnd =
+                this.meStart + response.data.me_end - response.data.me_start;
+              this.meFivePrime =
+                response.data.me_strand === "+" ? this.meStart : this.meEnd;
+              this.meThreePrime =
+                response.data.me_strand === "-" ? this.meEnd : this.meStart;
+            }
+            this.$root.$emit("setType", response.data.type);
+          })
+          .catch(error => {
+            fileError = error;
+            alert(`${this.locus.replace("_", ":")} not found`);
+            this.$router.push({
+              // path: this.group.split("/")[2],
             });
-        })
-        .catch(function(error) {
-          console.error(error);
-        })
-        .finally(() => {});
-      this.data = [];
-      const t = new IndexedFasta({
-        fasta: new RemoteFile(
-          this.publicPath + `data/${this.group}/fasta/${this.locus}.fasta`
-        ),
-        fai: new RemoteFile(
-          this.publicPath + `data/${this.group}/fasta/${this.locus}.fasta.fai`
-        )
-      });
-      this.fasta = t;
-      this.fasta.getSequenceList().then(d => {
-        let a = d[0];
-        this.fasta
-          .getSequence(a, this.index_start - 1, this.index_end + 1)
-          .then(s => {
-            this.referenceSeq = s;
-            this.fullReferenceSeq = s;
+          })
+          .finally(() => {
+            if (!fileError) {
+              this.data = [];
+
+              const t = new IndexedFasta({
+                fasta: new RemoteFile(
+                  this.publicPath +
+                    `data/${this.group}/fasta/${this.locus}.fasta`
+                ),
+                fai: new RemoteFile(
+                  this.publicPath +
+                    `data/${this.group}/fasta/${this.locus}.fasta.fai`
+                )
+              });
+              this.fasta = t;
+              this.fasta.getSequenceList().then(d => {
+                let a = d[0];
+                this.fasta
+                  .getSequence(a, this.index_start - 1, this.index_end + 1)
+                  .then(s => {
+                    this.referenceSeq = s;
+                    this.fullReferenceSeq = s;
+                  });
+              });
+
+              // TODO: Merge all of these async calls together (async.parrallel?)
+              // open local files
+              this.indexedFile = new IndexedCramFile({
+                cramFilehandle: new RemoteFile(
+                  this.publicPath + `data/${this.group}/cram/${this.locus}.cram`
+                ),
+                index: new CraiIndex({
+                  filehandle: new RemoteFile(
+                    this.publicPath +
+                      `data/${this.group}/cram/${this.locus}.cram.crai`
+                  )
+                }),
+                seqFetch: async (seqId, start, end) => {
+                  let a = (await t.getSequenceList())[0];
+                  let seq = await t.getSequence(a, start - 1, end);
+                  return seq;
+                },
+                checkSequenceMD5: false
+              });
+              loadCramRecords(
+                this.indexedFile,
+                this.index_start,
+                this.index_end,
+                this.meStart,
+                this.meEnd
+              )
+                .then(data => {
+                  this.data = data;
+                  this.histData = data;
+                })
+                .catch(() => {})
+                .finally(() => {
+                  this.$root.$emit("resetView");
+                });
+            }
           });
-      });
+      }
     }
   },
   computed: {
