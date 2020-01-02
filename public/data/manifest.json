@@ -1,1 +1,1 @@
-{"ungrouped": {"ungrouped": {"melt_test": {"fasta": {}, "cram": {}, "meta": {}}, "tipseq_test": {"fasta": {}, "cram": {}, "meta": {}}}}}
+{"ungrouped": {"ungrouped": {"tipseq_test": {"fasta": {}, "meta": {}, "cram": {}}, "melt_test": {"fasta": {}, "meta": {}, "cram": {}}, "melt_test_full": {"fasta": {}, "meta": {}, "cram": {}}}}}

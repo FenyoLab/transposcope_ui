@@ -4,7 +4,7 @@ const _ = require("lodash");
 
 // meStartCoord; meEndCoord
 
-function buildRead (read) {
+function buildRead(read) {
   let alignmentStart = read.alignmentStart;
   let readStart = read.alignmentStart;
   let alignmentEnd = readStart + read.lengthOnRef;
@@ -50,13 +50,13 @@ function buildRead (read) {
   };
 }
 
-function processReads (read1, read2) {
+function processReads(read1, read2) {
   let r1 = read1 == undefined ? undefined : buildRead(read1);
   let r2 = read2 == undefined ? undefined : buildRead(read2);
   return [r1, r2];
 }
 
-function classifyRead (read, meStartCoord, meEndCoord) {
+function classifyRead(read, meStartCoord, meEndCoord) {
   // meStartCoord += 1;
   // meEndCoord += 1;
   if (read.aStart <= meStartCoord && read.aEnd <= meStartCoord) return "G5";
@@ -110,7 +110,7 @@ const orientationMappings = {
   "G3|unmapped": ["gn", "unmapped"]
 };
 
-function classifyResults (reads, meStartCoord, meEndCoord) {
+function classifyResults(reads, meStartCoord, meEndCoord) {
   let r1Type = reads[0] != null ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
   let r2Type = reads[1] != null ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
   let type = orientationMappings[r1Type + "|" + r2Type] || [
@@ -124,14 +124,14 @@ function classifyResults (reads, meStartCoord, meEndCoord) {
   return type;
 }
 
-export async function loadCramRecords (indexedFile, start, end, meStartCoord, meEndCoord) {
+export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
       start,
       end
     );
-    let histogram = _.map(Array(10 + end - start), (d, i) => {
+    let histogram = _.map(Array(500 + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -204,7 +204,7 @@ export async function loadCramRecords (indexedFile, start, end, meStartCoord, me
   }
 }
 
-export async function getReads (indexedFile, insertionSite, paddingWidth, referenceWidth) {
+export async function getReads(indexedFile, insertionSite, paddingWidth, referenceWidth) {
   let start = insertionSite - paddingWidth;
   let end = insertionSite + paddingWidth;
   if (indexedFile != null) {
@@ -254,13 +254,12 @@ export async function getReads (indexedFile, insertionSite, paddingWidth, refere
                 "</span>"
               ])
             } else if (rf.code === "I" || rf.code === "i") {
-              if (bases.slice(rf.pos)) {
+              if (bases.slice(rf.pos - 1 + rf.data.length)) {
                 result_sequence.unshift(
                   ["<span class='I'>", bases.slice(rf.pos - 1 + rf.data.length), "</span>"]
                 );
               }
 
-              // bases = bases.slice(0, rf.pos - 1);
 
               insertions.push([result_sequence.length, rf.data]);
             } else {
@@ -276,7 +275,8 @@ export async function getReads (indexedFile, insertionSite, paddingWidth, refere
       let numSections = result_sequence.length;
       _.forEach(insertions, i => {
         let idx = numSections - i[0];
-        let previousChar = result_sequence[idx][1][0]
+        let previousChar = result_sequence[idx][1][0];
+        if (previousChar == undefined) console.log(result_sequence[idx])
         result_sequence[idx][1] = "<abbr title='" + previousChar + "|" + i[1] + "'>" + previousChar + "</abbr>" + result_sequence[idx][1].slice(1);
         // if (idx - 1 > 0) {
         //   result_sequence[idx - 1][1] = result_sequence[idx - 1][1].slice(0, result_sequence[idx - 1][1].length - 1) + "<abbr title='" + i[1] + "'>" + result_sequence[idx - 1][1][result_sequence[idx - 1][1].length - 1] + "</abbr>";

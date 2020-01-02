@@ -1,17 +1,7 @@
 <template>
-  <div
-    class="box"
-    style="height: 100%"
-  >
-    <div
-      class="visualization"
-      style="height: 100%"
-    >
-      <progress
-        v-if="data.length == 0"
-        class="progress is-primary"
-        max="100"
-      ></progress>
+  <div class="box" style="height: 100%">
+    <div class="visualization" style="height: 100%">
+      <progress v-if="data.length == 0" class="progress is-primary" max="100"></progress>
       <keep-alive>
         <component
           v-if="data.length != 0"
@@ -60,6 +50,7 @@ export default {
       meFivePrime: 1,
       meThreePrime: 1,
       meStrand: "-",
+      readLength: 250,
       indexedFile: null,
       publicPath: "", //process.env.BASE_URL,
       active: "histogram",
@@ -69,20 +60,19 @@ export default {
   },
   mounted() {
     this.$root.$on("updatedView", active => {
-      let leftClass, rightClass;
-      if (this.meStrand == "+") {
-        leftClass = "class='is-lowercase'";
-        rightClass = "class='is-uppercase'";
-      } else {
-        leftClass = "class='is-uppercase'";
-        rightClass = "class='is-lowercase'";
-      }
+      let refClass = "class='is-uppercase'";
+      let meClass = "class='is-lowercase'";
       if (active === "histogram") {
         this.data = this.histData;
         this.referenceSeq = this.fullReferenceSeq;
         this.active = active;
       } else if (active === "5p_junction") {
-        getReads(this.indexedFile, this.meFivePrime, 5, 150).then(data => {
+        getReads(
+          this.indexedFile,
+          this.meFivePrime,
+          5,
+          this.readLength + 50
+        ).then(data => {
           this.data = null;
           this.data = data;
           this.active = active;
@@ -90,40 +80,53 @@ export default {
           this.fasta.getSequenceList().then(d => {
             let a = d[0];
             this.fasta
-              .getSequence(a, this.meFivePrime - 150, this.meFivePrime + 150)
+              .getSequence(
+                a,
+                this.meFivePrime - (this.readLength + 50),
+                this.meFivePrime + (this.readLength + 50)
+              )
               .then(s => {
                 this.referenceSeq =
                   "<span " +
-                  leftClass +
+                  (this.meStrand == "+" ? refClass : meClass) +
                   ">" +
-                  s.slice(0, 150) +
+                  s.slice(0, this.readLength + 50) +
                   "</span><span " +
-                  rightClass +
+                  (this.meStrand == "+" ? meClass : refClass) +
                   ">" +
-                  s.slice(150) +
+                  s.slice(this.readLength + 50) +
                   "<span>";
               });
           });
         });
       } else if (active === "3p_junction") {
-        getReads(this.indexedFile, this.meThreePrime, 5, 150).then(data => {
+        getReads(
+          this.indexedFile,
+          this.meThreePrime,
+          5,
+          this.readLength + 50
+        ).then(data => {
           this.data = null;
           this.data = data;
           this.active = active;
           this.fasta.getSequenceList().then(d => {
             let a = d[0];
             this.fasta
-              .getSequence(a, this.meThreePrime - 150, this.meThreePrime + 150)
+              .getSequence(
+                a,
+                this.meThreePrime - (this.readLength + 50),
+                this.meThreePrime + (this.readLength + 50)
+              )
               .then(s => {
                 this.referenceSeq =
                   "<span " +
-                  leftClass +
+                  (this.meStrand == "+" ? meClass : refClass) +
                   ">" +
-                  s.slice(0, 150) +
+                  s.slice(0, this.readLength + 50) +
                   "</span><span " +
-                  rightClass +
+                  (this.meStrand == "+" ? refClass : meClass) +
                   ">" +
-                  s.slice(150) +
+                  s.slice(this.readLength + 50) +
                   "<span>";
               });
           });
@@ -139,7 +142,7 @@ export default {
         axios
           .get(this.publicPath + `data/${this.group}/meta/${this.locus}.json`)
           .then(response => {
-            console.log(response.data);
+            console.log("locus changed", response.data);
             // TODO: These should be precalculated
             this.meStrand = response.data.me_strand;
             this.aesthetics = response.data.regions;
@@ -185,7 +188,7 @@ export default {
               this.meFivePrime =
                 response.data.me_strand === "+" ? this.meStart : this.meEnd;
               this.meThreePrime =
-                response.data.me_strand === "-" ? this.meEnd : this.meStart;
+                response.data.me_strand === "+" ? this.meEnd : this.meStart;
             }
             this.$root.$emit("setType", response.data.type);
           })
@@ -251,7 +254,9 @@ export default {
                   this.data = data;
                   this.histData = data;
                 })
-                .catch(() => {})
+                .catch(error => {
+                  console.error(error);
+                })
                 .finally(() => {
                   this.$root.$emit("resetView");
                 });

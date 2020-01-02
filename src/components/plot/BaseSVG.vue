@@ -1,8 +1,5 @@
 <template>
-  <div
-    id="plot"
-    style="height: 100%"
-  >
+  <div id="plot" style="height: 100%">
     <article
       class="base-stats message is-small is-dark"
       :style="
@@ -18,20 +15,14 @@
         <p>Stats</p>
       </div>
       <div class="message-body">
-        <p
-          v-for="(value, name) in hoverPointStats.bpStat"
-          :key="name"
-        >
+        <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
           {{ name }}: {{ value }}
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
       </div>
     </article>
-    <svg
-      :width="width"
-      :height="height"
-    >
+    <svg :width="width" :height="height">
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g class="bases" />
 
@@ -54,7 +45,7 @@
           <!-- TODO: add a color parameter -->
           <rect
             v-for="item in paths.rects"
-            :key=item.name
+            :key="item.name"
             :x="scaled.x(item.x[0]+0.5)"
             :width="scaled.x(item.x[1])"
             :y="0"
@@ -65,23 +56,11 @@
           >
             <title>{{ item.name }}</title>
           </rect>
-          <path
-            class="selector"
-            v-if="hoverPointStats"
-            :d="paths.selector"
-          />
+          <path class="selector" v-if="hoverPointStats" :d="paths.selector" />
         </g>
 
-        <g
-          class="axis axis--x"
-          @mousemove="mouseover"
-          @mouseleave="hoverPointStats = null"
-        />
-        <g
-          class="axis axis--y"
-          @mousemove="mouseover"
-          @mouseleave="hoverPointStats = null"
-        />
+        <g class="axis axis--x" @mousemove="mouseover" @mouseleave="hoverPointStats = null" />
+        <g class="axis axis--y" @mousemove="mouseover" @mouseleave="hoverPointStats = null" />
         <g class="snpbases" />
       </g>
 
@@ -93,13 +72,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#fc8803"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#fc8803" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -114,13 +87,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#aa0000"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#aa0000" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -136,13 +103,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#3399cc"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#3399cc" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -157,13 +118,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#888800"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#888800" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -178,13 +133,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#CC8800"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#CC8800" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -199,13 +148,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#173a6e"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#173a6e" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -220,13 +163,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#666644"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#666644" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -294,7 +231,7 @@ export default {
       fills: {
         gg: "#999999", //Gray
         gn: "#888800", // Green
-        g_g: "#ff2222", // Red
+        g_g: "#db1a1a", // Red
         g_jG: "#aa0000", // Red
         g_jJ: "url(#Pg_jJ)", // Red Striped
         gjJ: "url(#PgjJ)", // orange striped
@@ -305,8 +242,8 @@ export default {
         jj: "url(#Pjj)",
         jlJ: "url(#PgjJ)",
         jlL: "url(#PgjJ)",
-        j_j3: "#FFFF00",
-        j_j5: "#FF00FF",
+        // j_j3: "#FFFF00",
+        // j_j5: "#FF00FF",
         ln: "url(#Pln)",
         ll: "url(#Pll)"
       },
@@ -421,6 +358,7 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
+      console.log("initializing svg");
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.svg
@@ -516,7 +454,8 @@ export default {
           .value();
         if (
           dominant[1] > 0 &&
-          dominant[0] !== this.referenceSeq.charAt(index)
+          dominant[0].toUpperCase() !==
+            this.referenceSeq.charAt(index).toUpperCase()
         ) {
           this.snps.push({ x: index, snp: dominant[0] });
         }
@@ -594,14 +533,14 @@ export default {
         .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
+        .style("fill", d => mapping[d.snp.toUpperCase()]);
 
       snpRects
         .attr("x", d => currentScale(d.x + 0.5))
         .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
+        .style("fill", d => mapping[d.snp.toUpperCase()]);
 
       snpRects.exit().remove();
 
@@ -617,14 +556,14 @@ export default {
         .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d]);
+        .style("fill", d => mapping[d.toUpperCase()]);
 
       rects
         .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(domZeroOffset)))
         .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d]);
+        .style("fill", d => mapping[d.toUpperCase()]);
 
       rects.exit().remove();
     }
