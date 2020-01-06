@@ -18,9 +18,15 @@
       </div>
       <div class="column is-3">
         <div class="field">
+          <label class="checkbox has-text-weight-bold">
+            <input type="checkbox" v-model="selectAllLine" />
+            LINE-1 (All)
+          </label>
+        </div>
+        <div v-for="(key, value) in lineOrientations" class="field" :key="key">
           <label class="checkbox">
-            <input type="checkbox" value="glL" v-model="selectedOrientations" />
-            Genome / Line
+            <input type="checkbox" :value="key" v-model="selectedOrientations" />
+            {{ value }}
           </label>
         </div>
       </div>
@@ -31,28 +37,10 @@
             Junction (All)
           </label>
         </div>
-        <div class="field">
+        <div v-for="(key, value) in junctionOrientations" class="field" :key="key">
           <label class="checkbox">
-            <input type="checkbox" value="gjJ" v-model="selectedOrientations" />
-            Genome / Junction
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="g_jJ" v-model="selectedOrientations" />
-            Genome / Junction (Bridging)
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="jj" v-model="selectedOrientations" />
-            Junction / Junction
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="jn" v-model="selectedOrientations" />
-            Junction / Unmapped
+            <input type="checkbox" :value="key" v-model="selectedOrientations" />
+            {{ value }}
           </label>
         </div>
       </div>
@@ -66,32 +54,46 @@ export default {
   data() {
     return {
       genomeOrienations: {
-        "Genome / Genome": "gg",
-        "Genome / Junction": "gjG",
-        "Genome / Line": "glG",
-        "Genome / Junction (Bridging)": "g_jG",
-        "Genome / Genome (Bridging)": "g_g",
-        "Genome / Unmapped": "gn"
+        "Genome | Genome": "gg",
+        "Genome | Junction": "gjG",
+        "Genome | LINE-1": "glG",
+        "Genome | Junction (Bridging)": "g_jG",
+        "Genome | Genome (Bridging)": "g_g",
+        "Genome | Unmapped": "gn"
       },
-      junctionOrienations: ["jj", "jn", "j_j5", "j_j3", "jlJ", "g_jJ", "gjJ"],
+      lineOrientations: {
+        "LINE-1 | LINE-1": "ll",
+        "Genome | LINE-1": "glL",
+        "Junction | LINE-1": "jlL",
+        "LINE-1 | Unmapped": "ln"
+      },
+      junctionOrientations: {
+        "Junction | Junction": "jj",
+        "Genome | Junction": "gjJ",
+        "Junction | LINE-1": "jlJ",
+        "Genome | Junction (Bridging)": "g_jJ",
+        "Junction | Junction (Bridging, 5p)": "j_j5",
+        "Junction | Junction (Bridging, 3p)": "j_j3",
+        "Junction | Unmapped": "jn"
+      },
       selectedOrientations: [
-        "gg",
-        "jj",
-        "ll",
-        "gn",
-        "jn",
-        "ln",
-        "g_g",
-        "g_jG",
-        "g_jJ",
-        "gjG",
-        "gjJ",
-        "glL",
-        "glG",
-        "jlJ",
-        "jlL",
-        "j_j5",
-        "j_j3"
+        "gg", // Added
+        "jj", // Added
+        "ll", // Added
+        "gn", // Added
+        "jn", // Added
+        "ln", // Added
+        "g_g", // Added
+        "g_jG", // Added
+        "g_jJ", // Added
+        "gjG", // Added
+        "gjJ", // Added
+        "glL", // Added
+        "glG", // Added
+        "jlJ", // Added
+        "jlL", // Added
+        "j_j5", // Added
+        "j_j3" // Added
       ]
     };
   },
@@ -121,20 +123,42 @@ export default {
         this.selectedOrientations = selected;
       }
     },
-    selectAllJunction: {
+    selectAllLine: {
       get: function() {
         return this.selectedOrientations
-          ? _.intersection(this.selectedOrientations, this.junctionOrienations)
-              .length == this.junctionOrienations.length
+          ? _.intersection(
+              this.selectedOrientations,
+              _.values(this.lineOrientations)
+            ).length == _.values(this.lineOrientations).length
           : false;
       },
       set: function(value) {
         let selected = _.difference(
           this.selectedOrientations,
-          this.junctionOrienations
+          _.values(this.lineOrientations)
         );
         if (value) {
-          selected = _.concat(selected, this.junctionOrienations);
+          selected = _.concat(selected, _.values(this.lineOrientations));
+        }
+        this.selectedOrientations = selected;
+      }
+    },
+    selectAllJunction: {
+      get: function() {
+        return this.selectedOrientations
+          ? _.intersection(
+              this.selectedOrientations,
+              _.values(this.junctionOrientations)
+            ).length == _.values(this.junctionOrientations).length
+          : false;
+      },
+      set: function(value) {
+        let selected = _.difference(
+          this.selectedOrientations,
+          _.values(this.junctionOrientations)
+        );
+        if (value) {
+          selected = _.concat(selected, _.values(this.junctionOrientations));
         }
         this.selectedOrientations = selected;
       }
