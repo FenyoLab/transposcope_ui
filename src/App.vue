@@ -1,15 +1,8 @@
 <template>
   <div id="app">
-    <nav
-      class="navbar is-primary has-shadow"
-      role="navigation"
-      aria-label="main navigation"
-    >
+    <nav class="navbar is-primary has-shadow" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <a
-          class="navbar-item"
-          href="/"
-        >
+        <a class="navbar-item" href="/">
           <p class="title has-text-light">TranspoScope</p>
         </a>
 
@@ -26,23 +19,14 @@
         </a>
       </div>
 
-      <div
-        id="navbarBasicExample"
-        class="navbar-menu"
-      >
+      <div id="navbarBasicExample" class="navbar-menu">
         <div class="navbar-start">
-          <router-link
+          <router-link class="navbar-item" to="/">Home</router-link>
+          <a
             class="navbar-item"
-            to="/"
-          >Home</router-link>
-          <!-- <router-link
-            class="navbar-item"
-            to="/dashboard"
-          >Dashboard</router-link> -->
-          <router-link
-            class="navbar-item"
-            to="/about"
-          >About</router-link>
+            href="https://github.com/FenyoLab/transposcope/wiki"
+            target="_blank"
+          >Documentation</a>
         </div>
       </div>
     </nav>

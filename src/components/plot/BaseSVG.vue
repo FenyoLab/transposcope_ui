@@ -242,8 +242,8 @@ export default {
         jj: "url(#Pjj)",
         jlJ: "url(#PgjJ)",
         jlL: "url(#PgjJ)",
-        // j_j3: "#FFFF00",
-        // j_j5: "#FF00FF",
+        j_j3: "#FFFF00",
+        j_j5: "#FF00FF",
         ln: "url(#Pln)",
         ll: "url(#Pll)"
       },

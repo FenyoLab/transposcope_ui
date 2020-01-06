@@ -124,14 +124,14 @@ function classifyResults(reads, meStartCoord, meEndCoord) {
   return type;
 }
 
-export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord) {
+export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord, readLength) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
       start,
       end
     );
-    let histogram = _.map(Array(500 + end - start), (d, i) => {
+    let histogram = _.map(Array(readLength + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -241,7 +241,6 @@ export async function getReads(indexedFile, insertionSite, paddingWidth, referen
                 ["<span style='color: orange;font-weight: bold'>",
                   rf.sub,
                   "</span>"]);
-
             } else if (rf.code === "D") {
               if (bases.slice(rf.pos - 1)) {
                 result_sequence.unshift(
@@ -259,8 +258,6 @@ export async function getReads(indexedFile, insertionSite, paddingWidth, referen
                   ["<span class='I'>", bases.slice(rf.pos - 1 + rf.data.length), "</span>"]
                 );
               }
-
-
               insertions.push([result_sequence.length, rf.data]);
             } else {
               console.log("UNSEEN REFERENCE FLAG", rf);
@@ -276,11 +273,7 @@ export async function getReads(indexedFile, insertionSite, paddingWidth, referen
       _.forEach(insertions, i => {
         let idx = numSections - i[0];
         let previousChar = result_sequence[idx][1][0];
-        if (previousChar == undefined) console.log(result_sequence[idx])
         result_sequence[idx][1] = "<abbr title='" + previousChar + "|" + i[1] + "'>" + previousChar + "</abbr>" + result_sequence[idx][1].slice(1);
-        // if (idx - 1 > 0) {
-        //   result_sequence[idx - 1][1] = result_sequence[idx - 1][1].slice(0, result_sequence[idx - 1][1].length - 1) + "<abbr title='" + i[1] + "'>" + result_sequence[idx - 1][1][result_sequence[idx - 1][1].length - 1] + "</abbr>";
-        // }
       });
       return padding + _.join(_.map(result_sequence, d => _.join(d, "")), '');
     });

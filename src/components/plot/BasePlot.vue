@@ -146,6 +146,15 @@ export default {
             // TODO: These should be precalculated
             this.meStrand = response.data.me_strand;
             this.aesthetics = response.data.regions;
+            let stats = {
+              chrom: "undefined",
+              fivePTS: "undefined",
+              fivePTE: "undefined",
+              threePTS: "undefined",
+              threePTE: "undefined",
+              L1RS: "undefined",
+              L1RE: "undefined"
+            };
             if (
               response.data.target_5p != null &&
               response.data.target_3p == null
@@ -160,8 +169,12 @@ export default {
                 this.meStart +
                 response.data.me_end -
                 response.data.me_start +
-                1000;
+                1000; // this offsets the 5p end which does not exist to correctly classify reads
               this.meThreePrime = this.meStart;
+              stats.threePTS = response.data.target_5p[0];
+              stats.threePTE = response.data.target_5p[1];
+              stats.L1RS = response.data.me_start;
+              stats.L1RE = response.data.me_end;
             } else if (
               response.data.target_5p == null &&
               response.data.target_3p != null
@@ -174,6 +187,10 @@ export default {
                 response.data.target_3p[0] +
                 (response.data.me_end - response.data.me_start);
               this.meThreePrime = this.meEnd;
+              stats.threePTS = response.data.target_3p[0];
+              stats.threePTE = response.data.target_3p[1];
+              stats.L1RS = response.data.me_start;
+              stats.L1RE = response.data.me_end;
             } else {
               this.index;
               this.index_end =
@@ -189,8 +206,16 @@ export default {
                 response.data.me_strand === "+" ? this.meStart : this.meEnd;
               this.meThreePrime =
                 response.data.me_strand === "+" ? this.meEnd : this.meStart;
+              stats.fivePTS = response.data.target_5p[0];
+              stats.fivePTE = response.data.target_5p[1];
+              stats.threePTS = response.data.target_3p[0];
+              stats.threePTE = response.data.target_3p[1];
+              stats.L1RS = response.data.me_start;
+              stats.L1RE = response.data.me_end;
             }
+            stats.chrom = response.data.chromosome;
             this.$root.$emit("setType", response.data.type);
+            this.$root.$emit("updateStats", stats);
           })
           .catch(error => {
             fileError = error;
@@ -248,7 +273,8 @@ export default {
                 this.index_start,
                 this.index_end,
                 this.meStart,
-                this.meEnd
+                this.meEnd,
+                this.readLength
               )
                 .then(data => {
                   this.data = data;
