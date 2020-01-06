@@ -9,40 +9,10 @@
             Genome (All)
           </label>
         </div>
-        <div class="field">
+        <div v-for="(key, value) in genomeOrienations" class="field" :key="key">
           <label class="checkbox">
-            <input type="checkbox" value="gg" v-model="selectedOrientations" />
-            Genome / Genome
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="gjG" v-model="selectedOrientations" />
-            Genome / Junction
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="glG" v-model="selectedOrientations" />
-            Genome / Line
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="g_jG" v-model="selectedOrientations" />
-            Genome / Junction (Bridging)
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="g_g" v-model="selectedOrientations" />
-            Genome / Genome (Bridging)
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" value="gn" v-model="selectedOrientations" />
-            Genome / Unmapped
+            <input type="checkbox" :value="key" v-model="selectedOrientations" />
+            {{ value }}
           </label>
         </div>
       </div>
@@ -95,7 +65,14 @@ export default {
   name: "HistogramSelection",
   data() {
     return {
-      genomeOrienations: ["gg", "gn", "g_g", "glG", "g_jG", "gjG"],
+      genomeOrienations: {
+        "Genome / Genome": "gg",
+        "Genome / Junction": "gjG",
+        "Genome / Line": "glG",
+        "Genome / Junction (Bridging)": "g_jG",
+        "Genome / Genome (Bridging)": "g_g",
+        "Genome / Unmapped": "gn"
+      },
       junctionOrienations: ["jj", "jn", "j_j5", "j_j3", "jlJ", "g_jJ", "gjJ"],
       selectedOrientations: [
         "gg",
@@ -127,17 +104,19 @@ export default {
     selectAllGenome: {
       get: function() {
         return this.selectedOrientations
-          ? _.intersection(this.selectedOrientations, this.genomeOrienations)
-              .length == this.genomeOrienations.length
+          ? _.intersection(
+              this.selectedOrientations,
+              _.values(this.genomeOrienations)
+            ).length == _.values(this.genomeOrienations).length
           : false;
       },
       set: function(value) {
         let selected = _.difference(
           this.selectedOrientations,
-          this.genomeOrienations
+          _.values(this.genomeOrienations)
         );
         if (value) {
-          selected = _.concat(selected, this.genomeOrienations);
+          selected = _.concat(selected, _.values(this.genomeOrienations));
         }
         this.selectedOrientations = selected;
       }

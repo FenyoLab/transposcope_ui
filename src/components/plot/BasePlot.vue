@@ -82,6 +82,7 @@ export default {
         this.referenceSeq = this.fullReferenceSeq;
         this.active = active;
       } else if (active === "5p_junction") {
+        console.log("5p", this.meFivePrime)
         getReads(this.indexedFile, this.meFivePrime, 5, 150).then(data => {
           this.data = null;
           this.data = data;
@@ -106,6 +107,7 @@ export default {
           });
         });
       } else if (active === "3p_junction") {
+        console.log("3p", this.meThreePrime)
         getReads(this.indexedFile, this.meThreePrime, 5, 150).then(data => {
           this.data = null;
           this.data = data;
@@ -185,7 +187,9 @@ export default {
               this.meFivePrime =
                 response.data.me_strand === "+" ? this.meStart : this.meEnd;
               this.meThreePrime =
-                response.data.me_strand === "-" ? this.meEnd : this.meStart;
+                response.data.me_strand === "+" ? this.meEnd : this.meStart;
+              console.log(this.meFivePrime, this.meThreePrime)
+              console.log(this.meStart, this.meEnd)
             }
             this.$root.$emit("setType", response.data.type);
           })

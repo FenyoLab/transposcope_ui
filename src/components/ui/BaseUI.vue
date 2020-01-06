@@ -1,9 +1,9 @@
 <template>
   <div
-    class="box"
+    class="box is-paddingless"
     style="height: 100%"
   >
-    <div class="tabs">
+    <div class="tabs is-marginless">
       <ul>
         <li
           @click="setActive('display')"
@@ -25,11 +25,12 @@
         </li>
       </ul>
     </div>
-    <div style="height: 80%;overflow-x: hidden;overflow-y:auto">
+    <div style="height:calc(100% - 41px);overflow:auto">
       <keep-alive>
         <component
           :type="type"
           :is="dynamicComponent"
+          style="padding:5px"
         ></component>
       </keep-alive>
     </div>

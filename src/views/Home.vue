@@ -1,55 +1,26 @@
 <template>
   <div class="home">
-    <div
-      class="box"
-      style="height: 100%"
-    >
+    <div class="box" style="height: 100%">
       <div class="select">
-        <select>
-          <option> A </option>
-          <option> B </option>
+        <select v-model="outer" lazy>
+          <option v-for="(child, key, idx) in samples" :key="idx">{{key}}</option>
         </select>
       </div>
-      <!-- <div class="select">
-        <select
-          v-model='outer'
-          lazy
-        >
-          <option
-            v-for="(child, key, idx) in samples"
-            :key="idx"
-          > {{key}} </option>
+      <div class="select is-multiple" v-if="outer">
+        <select v-model="inner" lazy>
+          <option v-for="(child, key, idx) in samples[outer]" :key="idx">{{key}}</option>
         </select>
       </div>
-      <div
-        class="select is-multiple"
-        v-if="outer"
-      >
-        <select
-          v-model='inner'
-          lazy
-        >
-          <option
-            v-for="(child, key, idx) in samples[outer]"
-            :key="idx"
-          > {{key}} </option>
+      <div class="select" v-if="inner">
+        <select v-model="experiment" lazy>
+          <option v-for="(child, key, idx) in samples[outer][inner]" :key="idx">{{key}}</option>
         </select>
       </div>
-      <div
-        class="select"
-        v-if="inner"
-      >
-        <select
-          v-model='experiment'
-          lazy
-        >
-          <option
-            v-for="(child, key, idx) in samples[outer][inner]"
-            :key="idx"
-          > {{key}} </option>
-        </select>
-      </div>
-      {{ this.outer + "/" + this.inner + "/" + this.experiment}} -->
+      {{ this.outer + "/" + this.inner + "/" + this.experiment}}
+      <router-link
+        class="button"
+        :to="'dashboard/' + this.outer + '/' + this.inner + '/' + this.experiment"
+      >GO</router-link>
     </div>
   </div>
 </template>
@@ -72,8 +43,13 @@ export default {
     axios
       .get(process.env.BASE_URL + `data/manifest.json`)
       .then(response => {
-        console.log(response.data);
         this.samples = response.data;
+        if (this.samples) this.outer = Object.keys(response.data)[0];
+        if (this.outer) this.inner = Object.keys(this.samples[this.outer])[0];
+        if (this.inner)
+          this.experiment = Object.keys(
+            this.samples[this.outer][this.inner]
+          )[0];
       })
       .catch(function(error) {
         console.error(error);

@@ -148,12 +148,11 @@ export default {
       );
     },
     selectLoci: function(idx, locus) {
-      if (this.selected_idx !== idx) {
         this.$router.push({
           // path: this.group.split("/")[2],
           query: { locus: locus.replace(":", "-") }
         });
-      }
+      // }
     },
     sortBy: function(key) {
       this.sortKey = key;
