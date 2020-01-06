@@ -47,7 +47,6 @@ export default {
     axios
       .get(process.env.BASE_URL + `data/manifest.json`)
       .then(response => {
-        console.log(response.data);
         this.samples = response.data;
         if (this.samples) this.outer = Object.keys(this.samples)[0];
         if (this.outer) this.inner = Object.keys(this.samples[this.outer])[0];
