@@ -1,8 +1,5 @@
 <template>
-  <div
-    id="plot"
-    style="height: 100%"
-  >
+  <div id="plot" style="height: 100%">
     <article
       class="base-stats message is-small is-dark"
       :style="
@@ -18,39 +15,26 @@
         <p>Stats</p>
       </div>
       <div class="message-body">
-        <p
-          v-for="(value, name) in hoverPointStats.bpStat"
-          :key="name"
-        >
+        <p v-for="(value, name) in hoverPointStats.bpStat" :key="name">
           {{ name }}: {{ value }}
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
       </div>
     </article>
-    <!--v-if="hoverPointStats !== null"-->
-    <!--:style="{`-->
-    <!--  'top:' +-->
-    <!--    lastHoverPoint.y +-->
-    <!--    'px;left:' +-->
-    <!--    (scaled.x(lastHoverPoint.x) * scaleFactor + transform.x) +-->
-    <!--    'px'-->
-    <!--    }"-->
-    <svg
-      @mousemove="mouseover"
-      @mouseleave="hoverPointStats = null"
-      :width="width"
-      :height="height"
-    >
+    <svg :width="width" :height="height">
       <g :style="{ transform: `translate(${margin.left}px, ${margin.top}px` }">
         <g class="bases" />
 
-        <g :style="{
+        <g
+          :style="{
             transform: `translate(${transform.x}px, ${
               transform.y
             }px) scaleX(${scaleFactor})`
-          }">
-          <!-- <path class="line" :d="paths.line" /> -->
+        }"
+          @mousemove="mouseover"
+          @mouseleave="hoverPointStats = null"
+        >
           <path
             v-for="orientation in orientations"
             v-bind:key="orientation"
@@ -58,14 +42,25 @@
             v-bind:d="paths.area[orientation]"
             v-bind:style="'fill:' + fills[orientation]"
           />
-          <path
-            class="selector"
-            :d="paths.selector"
-          />
+          <!-- TODO: add a color parameter -->
+          <rect
+            v-for="item in paths.rects"
+            :key="item.name"
+            :x="scaled.x(item.x[0]+0.5)"
+            :width="scaled.x(item.x[1])"
+            :y="0"
+            :height="padded.height"
+            :stroke="item.color"
+            :stroke-width="1/scaleFactor"
+            :style="'fill:' + item.color + ';fill-opacity:0.2'"
+          >
+            <title>{{ item.name }}</title>
+          </rect>
+          <path class="selector" v-if="hoverPointStats" :d="paths.selector" />
         </g>
 
-        <g class="axis axis--x" />
-        <g class="axis axis--y" />
+        <g class="axis axis--x" @mousemove="mouseover" @mouseleave="hoverPointStats = null" />
+        <g class="axis axis--y" @mousemove="mouseover" @mouseleave="hoverPointStats = null" />
         <g class="snpbases" />
       </g>
 
@@ -77,13 +72,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#fc8803"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#fc8803" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -98,13 +87,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#aa0000"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#aa0000" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -120,13 +103,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#b707e3"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#3399cc" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -141,13 +118,7 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#888800"
-        />
+        <rect x="0" width="5" height="5" y="0" fill="#888800" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -162,13 +133,37 @@
         patternUnits="userSpaceOnUse"
         v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
       >
-        <rect
-          x="0"
-          width="5"
-          height="5"
-          y="0"
-          fill="#CC8800"
+        <rect x="0" width="5" height="5" y="0" fill="#CC8800" />
+        <path
+          stroke="white"
+          v-bind:stroke-width="0.5 / scaleFactor"
+          v-bind:d="'M 0, ' + 5 / scaleFactor + ' L ' + 5 / scaleFactor + ',0'"
         />
+      </pattern>
+      <pattern
+        id="Pll"
+        v-bind:x="0"
+        v-bind:width="5 / scaleFactor"
+        v-bind:height="5 / scaleFactor"
+        patternUnits="userSpaceOnUse"
+        v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
+      >
+        <rect x="0" width="5" height="5" y="0" fill="#173a6e" />
+        <path
+          stroke="white"
+          v-bind:stroke-width="0.5 / scaleFactor"
+          v-bind:d="'M 0, ' + 5 / scaleFactor + ' L ' + 5 / scaleFactor + ',0'"
+        />
+      </pattern>
+      <pattern
+        id="Pln"
+        v-bind:x="0"
+        v-bind:width="5 / scaleFactor"
+        v-bind:height="5 / scaleFactor"
+        patternUnits="userSpaceOnUse"
+        v-bind:patternTransform="'scale(1 ' + scaleFactor + ')'"
+      >
+        <rect x="0" width="5" height="5" y="0" fill="#666644" />
         <path
           stroke="white"
           v-bind:stroke-width="0.5 / scaleFactor"
@@ -182,19 +177,20 @@
 <script>
 const d3 = require("d3");
 const _ = require("lodash");
-const mapping = { T: "red", G: "orange", A: "green", C: "blue" };
+const mapping = { T: "red", G: "orange", A: "green", C: "blue", X: "black" };
 export default {
   name: "Plot",
   props: {
     data: Array,
     referenceSeq: String,
+    info: Array,
     margin: {
       type: Object,
       default: () => ({
-        left: 20,
-        right: 0,
+        left: 25,
+        right: 5,
         top: 10,
-        bottom: 20
+        bottom: 25
       })
     }
   },
@@ -203,7 +199,8 @@ export default {
       width: 0,
       height: 0,
       paths: {
-        line: "",
+        line: { "5p": "" },
+        rects: {},
         area: { gg: "", g_g: "", gj: "", gl_l: "", gl_g: "" },
         selector: ""
       },
@@ -232,26 +229,23 @@ export default {
       scaleFactor: 1,
       baseFactor: 100,
       fills: {
-        gg: "#999999",
-        gn: "#888800",
-        g_g: "#ff2222",
-        g_jG: "#aa0000",
-        g_jJ: "url(#Pg_jJ",
-        gjJ: "url(#PgjJ)",
-        gjG: "#fc8803",
-        glL: "url(#PglL)",
-        glG: "#3399cc",
+        gg: "#999999", //Gray
+        gn: "#888800", // Green
+        g_g: "#db1a1a", // Red
+        g_jG: "#aa0000", // Red
+        g_jJ: "url(#Pg_jJ)", // Red Striped
+        gjJ: "url(#PgjJ)", // orange striped
+        gjG: "#fc8803", // orange
+        glL: "url(#PglL)", // Blue
+        glG: "#b707e3", // Purple
         jn: "url(#Pjn)",
         jj: "url(#Pjj)",
-        jlJ: "#FF0000",
-        jlL: "#FF0000",
-        j_j3: "#FF0000",
-        j_j5: "#FF0000",
-        ln: "#FF0000",
-        ll: "#FF0000"
-        // ln
-        // ll
-        // j_j
+        jlJ: "url(#PgjJ)",
+        jlL: "url(#PgjJ)",
+        // j_j3: "#FFFF00",
+        // j_j5: "#FF00FF",
+        ln: "url(#Pln)",
+        ll: "url(#Pll)"
       },
       hoverPointStats: null,
       snps: [],
@@ -347,6 +341,7 @@ export default {
       return area(points);
     },
     createValueSelector(point) {
+      let offset = this.scaleToStack ? point[0].total / 2 : 0;
       let points = [
         { y: point[0].total, x: point[0].key - 0.5 },
         { y: point[0].total, x: point[0].key + 0.5 }
@@ -354,8 +349,8 @@ export default {
       let tmp = d3
         .area()
         .x(d => this.scaled.x(d.x))
-        .y0(() => this.padded.height)
-        .y1(d => this.scaled.y(d.y));
+        .y0(() => this.scaled.y(0 - offset))
+        .y1(d => this.scaled.y(d.y - offset));
       return tmp(points);
     },
     onResize() {
@@ -363,8 +358,18 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
-      console.log(this.referenceSeq.slice(0, 100));
+      console.log("initializing svg");
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
+
+      this.selections.svg
+        .select(".snpbases")
+        .selectAll("rect")
+        .remove();
+
+      this.selections.svg
+        .select(".bases")
+        .selectAll("rect")
+        .remove();
 
       this.selections.gx = this.selections.svg.select(".axis--x");
       this.selections.gy = this.selections.svg.select(".axis--y");
@@ -373,7 +378,6 @@ export default {
       this.scaled.y = d3.scaleLinear().range([this.padded.height, 0]);
 
       this.scaled.x.domain(d3.extent(this.data, (d, i) => i));
-
       this.stacks = d3
         .stack()
 
@@ -390,27 +394,31 @@ export default {
       // TODO: Add an option for whether to scale or not
       if (this.scaleToStack) {
         this.scaled.y.domain([
-          d3.min(this.stacks, l => d3.min(l, d => d[0])),
-          d3.max(this.stacks, l => d3.max(l, d => d[1]))
+          d3.min(this.stacks, l => d3.min(l, d => d[0]) * 1.05),
+          d3.max(this.stacks, l => d3.max(l, d => d[1]) * 1.05)
         ]);
       } else {
-        this.scaled.y.domain([0, d3.max(_.map(this.data, d => d.total))]);
+        this.scaled.y.domain([
+          0,
+          d3.max(_.map(this.data, d => d.total)) * 1.05
+        ]);
       }
 
       this.axis.x = d3
         .axisTop()
         .scale(this.scaled.x)
-        .ticks((this.padded.width / 1000) * 5)
+        .ticks((this.padded.width / 1000) * 5, "~s")
         .tickSize(-this.padded.height)
-        .tickPadding(5 - this.padded.height);
+        .tickPadding(-this.padded.height - 10);
 
+      let yMax = Math.floor(this.scaled.y.domain()[1]) || 0;
       this.axis.y = d3
         .axisLeft()
         .scale(this.scaled.y)
-        .ticks(10)
-        .tickSizeInner(-100)
-        .tickSizeOuter(-50)
-        .tickPadding(-this.margin.left);
+        .ticks(yMax / 8 > 1 ? 8 : yMax, "~s")
+        .tickSize(-this.padded.width)
+        .tickPadding(this.margin.left * 0.25);
+      // .tickFormat(d3.format("d"));
 
       if (this.selections.svg) {
         this.selections.gx.call(this.axis.x);
@@ -424,7 +432,7 @@ export default {
         Math.abs(this.scaled.x.domain()[1] - this.scaled.x.domain()[0]);
 
       this.baseFactor =
-        (2 / this.width) *
+        (8 / this.width) *
         Math.abs(this.scaled.x.domain()[1] - this.scaled.x.domain()[0]);
 
       this.zoom = d3
@@ -434,8 +442,11 @@ export default {
         .extent([[0, 0], [this.width, 0]])
         .on("zoom", this.zoomed);
 
+      this.selections.svg.call(this.zoom.transform, d3.zoomIdentity);
+
       this.selections.svg.call(this.zoom);
 
+      this.snps = [];
       _.forEach(this.data.slice(1), (position, index) => {
         let dominant = _.chain(position.bpStat)
           .entries()
@@ -443,15 +454,19 @@ export default {
           .value();
         if (
           dominant[1] > 0 &&
-          dominant[0] !== this.referenceSeq.charAt(index)
+          dominant[0].toUpperCase() !==
+            this.referenceSeq.charAt(index).toUpperCase()
         ) {
           this.snps.push({ x: index, snp: dominant[0] });
         }
       });
+      this.paths.rects = this.info;
+      // _.forEach(this.info, (position, name) => {
+      //   this.paths.rects[name] = position;
+      // });
     },
     update() {
       this.points = this.stacks;
-      //this.paths.line = this.createLine(this.points);
       _.forEach(this.orientations, (d, i) => {
         this.paths.area[d] = this.createArea(this.points[i]);
       });
@@ -496,13 +511,14 @@ export default {
 
       let bases = [];
       let diff = [];
+      let domZeroOffset = Math.max(dom[0] - 4, 0);
       if (this.scaleFactor > this.baseFactor) {
         bases = _.slice(
           this.referenceSeq,
-          Math.floor(dom[0]),
-          Math.floor(dom[1])
+          Math.floor(domZeroOffset),
+          Math.floor(dom[1] + 5)
         );
-        diff = _.filter(this.snps, snp => snp.x >= dom[0] && snp.x <= dom[1]);
+        diff = _.filter(this.snps, snp => snp.x <= dom[1] && snp.x >= dom[0]);
       }
 
       let snpRects = this.selections.svg
@@ -514,17 +530,17 @@ export default {
         .enter()
         .append("rect")
         .attr("x", d => currentScale(d.x))
-        .attr("y", this.padded.height + 5)
+        .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
+        .style("fill", d => mapping[d.snp.toUpperCase()]);
 
       snpRects
         .attr("x", d => currentScale(d.x + 0.5))
-        .attr("y", this.padded.height + 5)
+        .attr("y", this.padded.height + 13)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d.snp]);
+        .style("fill", d => mapping[d.snp.toUpperCase()]);
 
       snpRects.exit().remove();
 
@@ -536,18 +552,18 @@ export default {
       rects
         .enter()
         .append("rect")
-        .attr("x", (d, i) => currentScale(i + Math.floor(dom[0])))
-        .attr("y", this.padded.height + 11)
+        .attr("x", (d, i) => currentScale(i + Math.floor(domZeroOffset)))
+        .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d]);
+        .style("fill", d => mapping[d.toUpperCase()]);
 
       rects
-        .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(dom[0])))
-        .attr("y", this.padded.height + 11)
+        .attr("x", (d, i) => currentScale(i + 0.5 + Math.floor(domZeroOffset)))
+        .attr("y", this.padded.height + 19)
         .attr("height", 5)
         .attr("width", currentScale(1) - currentScale(0))
-        .style("fill", d => mapping[d]);
+        .style("fill", d => mapping[d.toUpperCase()]);
 
       rects.exit().remove();
     }
@@ -579,7 +595,7 @@ export default {
 }
 
 .axis .domain {
-  stroke: #ff0000;
+  /* stroke: #ff0000; */
   opacity: 0.2;
 }
 </style>

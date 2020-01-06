@@ -1,26 +1,12 @@
 <template>
-  <div
-    class="box is-paddingless"
-    style="overflow-y: scroll;height:100%"
-  >
-    <input
-      class="input"
-      type="text"
-      v-model="filterKey"
-      placeholder="Search loci"
-    >
-    <table class=" table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
+  <div class="box is-paddingless" style="overflow-y: scroll;height:100%">
+    <input class="input" type="text" v-model="filterKey" placeholder="Search locus" />
+    <table class="table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
       <thead>
-        <tr class="loci">
-          <th
-            v-for="key in columns"
-            :key="key"
-            @click="sortBy(key)"
-          >{{ key }}<span
-              class="arrow"
-              :class="sortOrders[key] > 0 ? 'asc' : 'dsc'"
-            >
-            </span>
+        <tr class="locus">
+          <th v-for="key in columns" :key="key" @click="sortBy(key)">
+            {{ key }}
+            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'"></span>
           </th>
           <!--
               <th
@@ -34,15 +20,12 @@
           v-for="(entry, idx) in  filteredLoci"
           :key="idx"
           @click="selectLoci(idx, entry['ID'])"
-          :class="{ 'loci is-selected': idx==selected_idx}"
+          :class="{ 'locus is-selected': idx==selected_idx}"
         >
-          <td
-            v-for="key in columns"
-            :key='key'
-          >{{ entry[key] }}</td>
+          <td v-for="key in columns" :key="key" v-html="entry[key]"></td>
           <!-- <td>{{ row[0] }}</td>
           <td :style="'color:'+row[1][1]">{{ row[1][0] }}</td>
-          <td>{{ row[2] }}</td> -->
+          <td>{{ row[2] }}</td>-->
         </tr>
       </tbody>
     </table>
@@ -50,7 +33,7 @@
 </template>
 
 <script>
-/*eslint no-console: ["error", {allow: ["warn", "error"]}] */
+/*eslint no-console: ["error", {allow: ["warn", "error", "log"]}] */
 const axios = require("axios");
 const _ = require("lodash");
 
@@ -58,7 +41,7 @@ export default {
   name: "BaseTable",
   props: {
     group: String,
-    loci: String
+    locus: String
   },
   data: function() {
     var sortOrders = {};
@@ -68,37 +51,17 @@ export default {
     });
     return {
       columns: header,
-      contents: [{ ID: "A", Gene: "B", P: "C" }],
-      selected_idx: 0,
+      contents: [{ ID: "", Gene: "", P: "" }],
       sortKey: "",
       filterKey: "",
-      sortOrders: sortOrders
+      sortOrders: sortOrders,
+      selected_idx: 0
     };
-  },
-  mounted() {
-    axios
-      .get(process.env.BASE_URL + `data/${this.group}/table_info.json`)
-      .then(response => {
-        this.columns = response.data.heading;
-        var sortOrders = {};
-        this.columns.forEach(function(key) {
-          sortOrders[key] = 1;
-        });
-        this.sortOrders = sortOrders;
-        // FIX: This should be a dictionary so that ID is extracted
-        this.contents = response.data.data.map(loci =>
-          _.zipObject(this.columns, loci)
-        );
-        this.$emit("updateSelectedLoci", this.contents[0][this.columns[0]]);
-      })
-      .catch(function(error) {
-        console.error(error);
-      })
-      .finally(function() {});
   },
   computed: {
     filteredLoci: function() {
       var sortKey = this.sortKey;
+
       var order = this.sortOrders[sortKey] || 1;
       var loci = _.filter(this.contents, o => {
         return o.ID.includes(this.filterKey);
@@ -119,13 +82,67 @@ export default {
           return (a === b ? 0 : a > b ? 1 : -1) * order;
         });
       }
+
       return loci;
     }
   },
+  watch: {
+    filteredLoci: function() {
+      this.selected_idx = this.findLocus();
+    },
+    locus: function() {
+      if (!this.locus) {
+        console.log("redirecting on load");
+        this.selectLoci(0, this.filteredLoci[0].ID);
+      }
+      this.selected_idx = this.findLocus();
+    },
+    group: function() {
+      axios
+        .get(process.env.BASE_URL + `data/${this.group}/table_info.json`)
+        .then(response => {
+          this.columns = response.data.heading;
+          var sortOrders = {};
+          this.columns.forEach(function(key) {
+            sortOrders[key] = 1;
+          });
+          this.sortOrders = sortOrders;
+          // FIX: This should be a dictionary so that ID is extracted
+          this.contents = response.data.data.map(locus =>
+            _.zipObject(this.columns, locus)
+          );
+          console.log(this.selected_idx, this.findLocus(), this.locus);
+          if (!this.locus) {
+            console.log("redirecting on load");
+            this.selectLoci(0, this.filteredLoci[0].ID);
+          }
+          if (_.indexOf(this.columns, "Gene") !== -1) {
+            this.contents = _.map(this.contents, g => {
+              g["Gene"] = `<span style='color:${g["Gene"][1]}'>${
+                g["Gene"][0]
+              }</span>`;
+              return g;
+            });
+          }
+        })
+        .catch(function(error) {
+          console.error(error);
+        })
+        .finally(function() {});
+    }
+  },
   methods: {
-    selectLoci: function(idx, loci) {
-      this.selected_idx = idx;
-      this.$emit("updateSelectedLoci", loci);
+    findLocus: function() {
+      return _.findIndex(
+        this.filteredLoci,
+        locus => locus.ID === this.locus.replace("_", ":")
+      );
+    },
+    selectLoci: function(idx, locus) {
+      this.$router.push({
+        // path: this.group.split("/")[2],
+        query: { locus: locus.replace(":", "-") }
+      });
     },
     sortBy: function(key) {
       this.sortKey = key;
@@ -135,8 +152,8 @@ export default {
 };
 </script>
 
-<style>
-.loci {
+<style scoped>
+tr {
   cursor: pointer;
 }
 .arrow {

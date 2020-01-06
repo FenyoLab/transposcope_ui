@@ -21,9 +21,11 @@ export default new Router({
       component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
     },
     {
-      path: '/dashboard',
+      path: '/dashboard/:group1/:group2/:sample/',
       name: 'dashboard',
-      component: Dashboard
+      component: Dashboard,
+      props: true,
+      query: { locus: "" }
     }
   ]
 })

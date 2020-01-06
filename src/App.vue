@@ -31,16 +31,18 @@
         class="navbar-menu"
       >
         <div class="navbar-start">
-          <a class="navbar-item">
-            Home
-          </a>
-
-          <a class="navbar-item">
-            Documentation
-          </a>
-          <router-link to="/">Home</router-link> |
-          <router-link to="/dashboard">Dashboard</router-link> |
-          <router-link to="/about">About</router-link>
+          <router-link
+            class="navbar-item"
+            to="/"
+          >Home</router-link>
+          <!-- <router-link
+            class="navbar-item"
+            to="/dashboard"
+          >Dashboard</router-link> -->
+          <router-link
+            class="navbar-item"
+            to="/about"
+          >About</router-link>
         </div>
       </div>
     </nav>

@@ -11,14 +11,18 @@
         />
         Histograms
       </label>
-      <label class="radio">
+      <label
+        class="radio"
+        :disabled="isTipseq"
+      >
         <input
           type="radio"
           value="5p_junction"
           v-model="currentView"
           name="type"
+          :disabled="isTipseq"
         />
-        5' Junction Reads
+        Mobile Element 5' Junction Reads
       </label>
       <label class="radio">
         <input
@@ -27,7 +31,7 @@
           v-model="currentView"
           name="type"
         />
-        3' Junction Reads
+        Mobile Element 3' Junction Reads
       </label>
     </div>
   </div>
@@ -36,20 +40,33 @@
 <script>
 export default {
   name: "Display",
+  props: {},
   data() {
     return {
-      currentView: "histogram"
+      currentView: "histogram",
+      type: ""
     };
   },
   mounted() {
     this.$root.$on("resetView", () => {
-      console.log("resetting view");
       this.currentView = "histogram";
+    });
+    this.$root.$on("setType", type => {
+      console.log("SETTING TYPE");
+      this.type = type;
     });
   },
   watch: {
     currentView() {
       this.$root.$emit("updatedView", this.currentView);
+    },
+    type() {
+      console.log(this.type);
+    }
+  },
+  computed: {
+    isTipseq() {
+      return this.type === "tipseq";
     }
   }
 };

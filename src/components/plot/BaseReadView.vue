@@ -1,9 +1,12 @@
 <template>
-  <div style="overflow: scroll;height: 100%;font-family: 'courier', 'monospace';white-space:pre; width=100%">
-    <table class="table is-fullwidth is-hoverable is-narrow table">
+  <div style="overflow: scroll;height: 100%;white-space:pre; width=100%">
+    <table class="table is-fullwidth is-hoverable is-narrow table is-family-monospace">
       <thead>
         <tr>
-          <th class="sticky has-text-dark has-background-white is-size-6">{{ referenceSeq }}</th>
+          <th
+            class="sticky has-text-dark has-background-white is-size-6"
+            v-html="referenceSeq"
+          ></th>
         </tr>
       </thead>
       <tbody class="is-size-6">

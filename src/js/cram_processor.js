@@ -4,7 +4,7 @@ const _ = require("lodash");
 
 // meStartCoord; meEndCoord
 
-function buildRead (read) {
+function buildRead(read) {
   let alignmentStart = read.alignmentStart;
   let readStart = read.alignmentStart;
   let alignmentEnd = readStart + read.lengthOnRef;
@@ -16,13 +16,13 @@ function buildRead (read) {
       // CIGAR/MD strings in SAM. see CRAM specs for more details.
       if (rf.code === "S") {
         if (rf.pos === 1) {
-          readStart -= rf.data.length;
+          //   readStart -= rf.data.length;
           bases = bases.slice(rf.pos - 1 + rf.data.length);
         } else {
-          readEnd += rf.data.length;
+          //   readEnd += rf.data.length;
           bases = bases.slice(0, rf.pos - 1);
         }
-        // } else if (rf.code === "X") {
+      } else if (rf.code === "X") {
         // These changes have already been made in getReadBases
         // console.log('X')
       } else if (rf.code === "D") {
@@ -31,43 +31,50 @@ function buildRead (read) {
           "X".repeat(rf.data) +
           bases.slice(rf.pos - 1);
 
-        //} else if (rf.code === "I") {
-        //console.log("I");
-        //} else if (rf.code === "i") {
-        //console.log("i");
+      } else if (rf.code === "I") {
+        bases = bases.slice(0, rf.pos - 1) + bases.slice(rf.pos - 1 + rf.data.length)
+      } else if (rf.code === "i") {
+        bases = bases.slice(0, rf.pos - 1) + bases.slice(rf.pos - 1 + rf.data.length)
       } else {
         //TODO: Make sure that all flags are being processed
-        // console.log("UNSEEN REFERENCE FLAG", rf)
+        console.log("UNSEEN REFERENCE FLAG", rf)
       }
     });
   }
   return {
     aStart: alignmentStart,
+    aEnd: alignmentEnd,
     bases: bases,
     rStart: readStart,
     rEnd: readEnd
   };
 }
 
-function processReads (read1, read2) {
+function processReads(read1, read2) {
   let r1 = read1 == undefined ? undefined : buildRead(read1);
   let r2 = read2 == undefined ? undefined : buildRead(read2);
   return [r1, r2];
 }
 
-function classifyRead (read, meStartCoord, meEndCoord) {
-  // TODO: Add unmapped condition
-  if (read.rStart < meStartCoord && read.rEnd < meStartCoord) return "G5";
-  else if (read.rStart > meEndCoord && read.rEnd > meEndCoord) return "G3";
-  else if (meStartCoord < read.rStart && read.rEnd < meEndCoord) return "L";
-  //else if (read.rStart <= meStartCoord && meEndCoord <= read.rEnd) return "JS";
-  else if (read.rStart <= meStartCoord && read.rEnd >= meStartCoord) return "J5";
-  else if (read.rStart <= meEndCoord && read.rEnd >= meEndCoord) return "J3";
+function classifyRead(read, meStartCoord, meEndCoord) {
+  // meStartCoord += 1;
+  // meEndCoord += 1;
+  if (read.aStart <= meStartCoord && read.aEnd <= meStartCoord) return "G5";
+  else if (read.aStart >= meEndCoord && read.aEnd >= meEndCoord) return "G3";
+  else if (meStartCoord < read.aStart && read.aEnd < meEndCoord) return "L";
+  else if (read.aStart <= meStartCoord && read.aEnd >= meStartCoord) return "J5";
+  else if (read.aStart <= meEndCoord && read.aEnd >= meEndCoord) return "J3";
+  // if (read.rStart <= meStartCoord && read.rEnd <= meStartCoord) return "G5";
+  // else if (read.rStart >= meEndCoord && read.rEnd >= meEndCoord) return "G3";
+  // else if (meStartCoord < read.rStart && read.rEnd < meEndCoord) return "L";
+  // else if (read.rStart < meStartCoord && read.rEnd > meStartCoord) return "J5";
+  // else if (read.rStart < meEndCoord && read.rEnd > meEndCoord) return "J3";
   else return null;
 }
 
 const orientationMappings = {
   "unmapped|G5": ["unmapped", "gn"],
+  "unmapped|G3": ["unmapped", "gn"],
   "unmapped|J5": ["unmapped", "jn"],
   "unmapped|L": ["unmapped", "ln"],
   "unmapped|J3": ["unmapped", "jn"],
@@ -103,28 +110,28 @@ const orientationMappings = {
   "G3|unmapped": ["gn", "unmapped"]
 };
 
-function classifyResults (reads, meStartCoord, meEndCoord) {
-  let r1Type = reads[0] ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
-  let r2Type = reads[1] ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
+function classifyResults(reads, meStartCoord, meEndCoord) {
+  let r1Type = reads[0] != null ? classifyRead(reads[0], meStartCoord, meEndCoord) : "unmapped";
+  let r2Type = reads[1] != null ? classifyRead(reads[1], meStartCoord, meEndCoord) : "unmapped";
   let type = orientationMappings[r1Type + "|" + r2Type] || [
     "unmapped",
     "unmapped"
   ];
-  if (type === ["unmapped", "unmapped"]) console.log("double unmapped");
+  if (type[0] === "unmapped" && type[1] === "unmapped") {
+    console.log("double unmapped", meStartCoord, meEndCoord, r1Type, r2Type, reads);
+  }
 
   return type;
 }
 
-export async function loadCramRecords (indexedFile, start, end, meStartCoord, meEndCoord) {
+export async function loadCramRecords(indexedFile, start, end, meStartCoord, meEndCoord) {
   if (indexedFile != null) {
     const records = await indexedFile.getRecordsForRange(
       0,
-      start - 200,
-      end + 200
+      start,
+      end
     );
-    //const records = await indexedFile.getRecordsForRange(0, 200, 300);
-    // TODO: Update the size of the histogram to the region size with padding
-    let histogram = _.map(Array(10 + end - start), (d, i) => {
+    let histogram = _.map(Array(500 + end - start), (d, i) => {
       return {
         total: 0,
         bpStat: { A: 0, C: 0, G: 0, T: 0, N: 0, X: 0 },
@@ -163,41 +170,41 @@ export async function loadCramRecords (indexedFile, start, end, meStartCoord, me
         let orientations = classifyResults(results, meStartCoord, meEndCoord);
         let result = results[0];
         let orientation = orientations[0];
+
+
         if (result) {
-          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
                 histogram[result.aStart + index].classes[orientation] += 1;
               }
-
               histogram[result.aStart + index].bpStat[base] += 1;
               histogram[result.aStart + index].total += 1;
             }
           });
         }
         result = results[1];
+
         orientation = orientations[1];
         if (result) {
-          // count += 1;
           _.forEach(result.bases, (base, index) => {
             if (orientation !== "unmapped") {
               if (base !== "X") {
                 histogram[result.aStart + index].classes[orientation] += 1;
               }
-
               histogram[result.aStart + index].bpStat[base] += 1;
               histogram[result.aStart + index].total += 1;
             }
           });
         }
+
       })
       .value();
     return histogram;
   }
 }
 
-export async function getReads (indexedFile, insertionSite, paddingWidth, referenceWidth) {
+export async function getReads(indexedFile, insertionSite, paddingWidth, referenceWidth) {
   let start = insertionSite - paddingWidth;
   let end = insertionSite + paddingWidth;
   if (indexedFile != null) {
@@ -246,19 +253,14 @@ export async function getReads (indexedFile, insertionSite, paddingWidth, refere
                 "X".repeat(rf.data),
                 "</span>"
               ])
-            } else if (rf.code === "I") {
-              if (bases.slice(rf.pos)) {
+            } else if (rf.code === "I" || rf.code === "i") {
+              if (bases.slice(rf.pos - 1 + rf.data.length)) {
                 result_sequence.unshift(
-                  ["<span>", bases.slice(rf.pos), "</span>"]
+                  ["<span class='I'>", bases.slice(rf.pos - 1 + rf.data.length), "</span>"]
                 );
               }
-              insertions.push([result_sequence.length, rf.data]);
-            } else if (rf.code === "i") {
-              if (bases.slice(rf.pos)) {
-                result_sequence.unshift(
-                  ["<span>", bases.slice(rf.pos), "</span>"]
-                );
-              }
+
+
               insertions.push([result_sequence.length, rf.data]);
             } else {
               console.log("UNSEEN REFERENCE FLAG", rf);
@@ -273,10 +275,12 @@ export async function getReads (indexedFile, insertionSite, paddingWidth, refere
       let numSections = result_sequence.length;
       _.forEach(insertions, i => {
         let idx = numSections - i[0];
-        result_sequence[idx][1] = "<abbr title='" + i[1] + "'>" + result_sequence[idx][1][0] + "</abbr>" + result_sequence[idx][1].slice(1);
-        if (idx - 1 > 0) {
-          result_sequence[idx - 1][1] = result_sequence[idx - 1][1].slice(0, result_sequence[idx - 1][1].length - 1) + "<abbr title='" + i[1] + "'>" + result_sequence[idx - 1][1][result_sequence[idx - 1][1].length - 1] + "</abbr>";
-        }
+        let previousChar = result_sequence[idx][1][0];
+        if (previousChar == undefined) console.log(result_sequence[idx])
+        result_sequence[idx][1] = "<abbr title='" + previousChar + "|" + i[1] + "'>" + previousChar + "</abbr>" + result_sequence[idx][1].slice(1);
+        // if (idx - 1 > 0) {
+        //   result_sequence[idx - 1][1] = result_sequence[idx - 1][1].slice(0, result_sequence[idx - 1][1].length - 1) + "<abbr title='" + i[1] + "'>" + result_sequence[idx - 1][1][result_sequence[idx - 1][1].length - 1] + "</abbr>";
+        // }
       });
       return padding + _.join(_.map(result_sequence, d => _.join(d, "")), '');
     });
