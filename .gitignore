@@ -1,10 +1,8 @@
 .DS_Store
 node_modules
 public/data/ungrouped/ungrouped/tipseq_test/
-<<<<<<< HEAD
-=======
 public/data/ungrouped/ungrouped/melt_test_full/
->>>>>>> feature/ui_panel
+
 /dist
 
 # local env files
