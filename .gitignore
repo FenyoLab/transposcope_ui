@@ -2,6 +2,7 @@
 node_modules
 public/data/ungrouped/ungrouped/tipseq_test/
 public/data/ungrouped/ungrouped/melt_test_full/
+
 /dist
 
 # local env files
