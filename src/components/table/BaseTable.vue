@@ -1,26 +1,12 @@
 <template>
-  <div
-    class="box is-paddingless"
-    style="overflow-y: scroll;height:100%"
-  >
-    <input
-      class="input"
-      type="text"
-      v-model="filterKey"
-      placeholder="Search locus"
-    >
-    <table class=" table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
+  <div class="box is-paddingless" style="overflow-y: scroll;height:100%">
+    <input class="input" type="text" v-model="filterKey" placeholder="Search locus" />
+    <table class="table is-bordered is-narrow is-fullwidth is-hoverable table is-striped">
       <thead>
         <tr class="locus">
-          <th
-            v-for="key in columns"
-            :key="key"
-            @click="sortBy(key)"
-          >{{ key }}<span
-              class="arrow"
-              :class="sortOrders[key] > 0 ? 'asc' : 'dsc'"
-            >
-            </span>
+          <th v-for="key in columns" :key="key" @click="sortBy(key)">
+            {{ key }}
+            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'"></span>
           </th>
           <!--
               <th
@@ -36,13 +22,10 @@
           @click="selectLoci(idx, entry['ID'])"
           :class="{ 'locus is-selected': idx==selected_idx}"
         >
-          <td
-            v-for="key in columns"
-            :key='key'
-          >{{ entry[key] }}</td>
+          <td v-for="key in columns" :key="key" v-html="entry[key]"></td>
           <!-- <td>{{ row[0] }}</td>
           <td :style="'color:'+row[1][1]">{{ row[1][0] }}</td>
-          <td>{{ row[2] }}</td> -->
+          <td>{{ row[2] }}</td>-->
         </tr>
       </tbody>
     </table>
@@ -133,6 +116,14 @@ export default {
             console.log("redirecting on load");
             this.selectLoci(0, this.filteredLoci[0].ID);
           }
+          if (_.indexOf(this.columns, "Gene") !== -1) {
+            this.contents = _.map(this.contents, g => {
+              g["Gene"] = `<span style='color:${g["Gene"][1]}'>${
+                g["Gene"][0]
+              }</span>`;
+              return g;
+            });
+          }
         })
         .catch(function(error) {
           console.error(error);
@@ -148,11 +139,10 @@ export default {
       );
     },
     selectLoci: function(idx, locus) {
-        this.$router.push({
-          // path: this.group.split("/")[2],
-          query: { locus: locus.replace(":", "-") }
-        });
-      // }
+      this.$router.push({
+        // path: this.group.split("/")[2],
+        query: { locus: locus.replace(":", "-") }
+      });
     },
     sortBy: function(key) {
       this.sortKey = key;
