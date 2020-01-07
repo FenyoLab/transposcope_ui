@@ -2,6 +2,8 @@
 node_modules
 public/data/ungrouped/ungrouped/tipseq_test/
 public/data/ungrouped/ungrouped/melt_test_full/
+public/data/ungrouped/ungrouped/melt_full/
+public/data/ungrouped/ungrouped/tipseq_test_no_genes/
 
 /dist
 
@@ -22,3 +24,5 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+

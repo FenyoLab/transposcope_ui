@@ -20,6 +20,7 @@
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
+        <p>x: {{ hoverPointStats.key }}</p>
       </div>
     </article>
     <svg :width="width" :height="height">

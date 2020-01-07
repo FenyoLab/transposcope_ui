@@ -1,6 +1,6 @@
 <template>
   <div style="margin-top:20px;width:100%">
-    <table class="table is-narrow is-fullwidth is-bordered is-striped">
+    <table class="table is-size-6 is-narrow is-fullwidth is-bordered is-striped">
       <tbody>
         <tr>
           <td class="has-text-weight-bold">Chromosome:</td>
@@ -29,6 +29,10 @@
         <tr>
           <td class="has-text-weight-bold">LINE-1 Reference End:</td>
           <td align="right">{{ info["L1RE"] }}</td>
+        </tr>
+        <tr>
+          <td class="has-text-weight-bold">TSD</td>
+          <td align="right">{{ info["TSD"] }}</td>
         </tr>
       </tbody>
     </table>

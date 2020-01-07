@@ -50,7 +50,7 @@ export default {
       meFivePrime: 1,
       meThreePrime: 1,
       meStrand: "-",
-      readLength: 250,
+      readLength: 100,
       indexedFile: null,
       publicPath: "", //process.env.BASE_URL,
       active: "histogram",
@@ -153,7 +153,8 @@ export default {
               threePTS: "undefined",
               threePTE: "undefined",
               L1RS: "undefined",
-              L1RE: "undefined"
+              L1RE: "undefined",
+              TSD: "undefined"
             };
             if (
               response.data.target_5p != null &&
@@ -199,9 +200,12 @@ export default {
                 response.data.me_end -
                 response.data.me_start;
               this.meStart =
-                response.data.target_5p[1] - response.data.target_5p[0];
+                response.data.target_5p[1] - response.data.target_5p[0] + 1;
               this.meEnd =
-                this.meStart + response.data.me_end - response.data.me_start;
+                this.meStart +
+                response.data.me_end -
+                response.data.me_start +
+                1;
               this.meFivePrime =
                 response.data.me_strand === "+" ? this.meStart : this.meEnd;
               this.meThreePrime =
@@ -212,8 +216,10 @@ export default {
               stats.threePTE = response.data.target_3p[1];
               stats.L1RS = response.data.me_start;
               stats.L1RE = response.data.me_end;
+              stats.TSD = response.data.info.TSD;
             }
             stats.chrom = response.data.chromosome;
+            this.readLength = response.data.read_length || 500;
             this.$root.$emit("setType", response.data.type);
             this.$root.$emit("updateStats", stats);
           })

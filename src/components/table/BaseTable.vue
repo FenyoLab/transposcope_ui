@@ -116,14 +116,14 @@ export default {
             console.log("redirecting on load");
             this.selectLoci(0, this.filteredLoci[0].ID);
           }
-          if (_.indexOf(this.columns, "Gene") !== -1) {
-            this.contents = _.map(this.contents, g => {
-              g["Gene"] = `<span style='color:${g["Gene"][1]}'>${
-                g["Gene"][0]
-              }</span>`;
-              return g;
-            });
-          }
+          // if (_.indexOf(this.columns, "Gene") !== -1) {
+          //   this.contents = _.map(this.contents, g => {
+          //     g["Gene"] = `<span style='color:${g["Gene"][1]}'>${
+          //       g["Gene"][0]
+          //     }</span>`;
+          //     return g;
+          //   });
+          // }
         })
         .catch(function(error) {
           console.error(error);
