@@ -1,1 +1,1 @@
-{"ungrouped": {"ungrouped": {"melt_test_full": {"fasta": {}, "meta": {}, "cram": {}}, "melt_full": {"fasta": {}, "meta": {}}, "melt_test": {"fasta": {}, "meta": {}, "cram": {}}, "tipseq_test": {"fasta": {}, "meta": {}, "cram": {}}, "tipseq_test_no_genes": {"fasta": {}, "meta": {}, "cram": {}}}}}
+{"ungrouped": {"ungrouped": {"melt_full": {"cram": {}, "fasta": {}, "meta": {}}, "melt_test": {"cram": {}, "fasta": {}, "meta": {}}, "tipseq_test": {"cram": {}, "fasta": {}, "meta": {}}, "tipseq_test_no_genes": {"cram": {}, "fasta": {}, "meta": {}}}}}
