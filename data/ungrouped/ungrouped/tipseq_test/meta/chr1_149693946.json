@@ -1,0 +1,1 @@
+{"chromosome": "chr1", "target_5p": null, "target_3p": [149693946, 149695707], "window": 1, "me_strand": "+", "me_start": 5904, "me_end": 6064, "pred": 1.0, "info": ["chr1", 149693946, 149695707, 149694054, 149694055, "+", 1.0, true, "BstYI-1043:NcoI-103:PstI-1699", 5904, 6064]}

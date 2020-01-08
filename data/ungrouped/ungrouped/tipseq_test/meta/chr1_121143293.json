@@ -1,0 +1,1 @@
+{"chromosome": "chr1", "target_5p": [121141974, 121143293], "target_3p": null, "window": 1, "me_strand": "-", "me_start": 5904, "me_end": 6064, "pred": 1.0, "info": ["chr1", 121141974, 121143293, 121142693, 121142694, "-", 1.0, true, "BspHI-181", 5904, 6064]}

@@ -1,0 +1,1 @@
+{"chromosome": "chr1", "target_5p": null, "target_3p": [241135880, 241136357], "window": 8, "me_strand": "+", "me_start": 5904, "me_end": 6064, "pred": 1.0, "info": ["chr1", 241135880, 241136357, 241136017, 241136025, "+", 1.0, true, "BstYI-218:HindIII-367", 5904, 6064]}
