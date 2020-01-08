@@ -33,7 +33,7 @@
 </template>
 
 <script>
-/*eslint no-console: ["error", {allow: ["warn", "error", "log"]}] */
+/*eslint no-console: ["error", {allow: ["warn", "error"]}] */
 const axios = require("axios");
 const _ = require("lodash");
 
@@ -55,7 +55,7 @@ export default {
       sortKey: "",
       filterKey: "",
       sortOrders: sortOrders,
-      selected_idx: 0
+      selected_idx: -1
     };
   },
   computed: {
@@ -92,7 +92,6 @@ export default {
     },
     locus: function() {
       if (!this.locus) {
-        console.log("redirecting on load");
         this.selectLoci(0, this.filteredLoci[0].ID);
       }
       this.selected_idx = this.findLocus();
@@ -111,19 +110,9 @@ export default {
           this.contents = response.data.data.map(locus =>
             _.zipObject(this.columns, locus)
           );
-          console.log(this.selected_idx, this.findLocus(), this.locus);
           if (!this.locus) {
-            console.log("redirecting on load");
             this.selectLoci(0, this.filteredLoci[0].ID);
           }
-          // if (_.indexOf(this.columns, "Gene") !== -1) {
-          //   this.contents = _.map(this.contents, g => {
-          //     g["Gene"] = `<span style='color:${g["Gene"][1]}'>${
-          //       g["Gene"][0]
-          //     }</span>`;
-          //     return g;
-          //   });
-          // }
         })
         .catch(function(error) {
           console.error(error);
@@ -139,10 +128,12 @@ export default {
       );
     },
     selectLoci: function(idx, locus) {
-      this.$router.push({
-        // path: this.group.split("/")[2],
-        query: { locus: locus.replace(":", "-") }
-      });
+      if (this.selected_idx !== idx) {
+        this.$router.push({
+          // path: this.group.split("/")[2],
+          query: { locus: locus.replace(":", "-") }
+        });
+      }
     },
     sortBy: function(key) {
       this.sortKey = key;

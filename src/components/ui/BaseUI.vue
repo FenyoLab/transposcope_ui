@@ -32,18 +32,22 @@ import DisplayStats from "./tabs/BaseStats.vue";
 
 export default {
   name: "BaseUI",
-  props: {
-    type: String
-  },
+  props: {},
   data: () => {
     return {
-      active: "stats"
+      active: "stats",
+      type: ""
     };
   },
   methods: {
     setActive(key) {
       this.active = key;
     }
+  },
+  mounted() {
+    this.$root.$on("setType", type => {
+      this.type = type;
+    });
   },
   computed: {
     dynamicComponent() {

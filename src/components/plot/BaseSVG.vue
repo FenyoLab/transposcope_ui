@@ -359,7 +359,6 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
-      console.log("initializing svg");
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.svg

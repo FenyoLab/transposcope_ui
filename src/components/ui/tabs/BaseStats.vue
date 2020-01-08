@@ -1,6 +1,8 @@
 <template>
   <div style="margin-top:20px;width:100%">
     <table class="table is-size-6 is-narrow is-fullwidth is-bordered is-striped">
+      <col width="30%" />
+      <col width="70%" />
       <tbody>
         <tr>
           <td class="has-text-weight-bold">Chromosome:</td>
@@ -30,9 +32,12 @@
           <td class="has-text-weight-bold">LINE-1 Reference End:</td>
           <td align="right">{{ info["L1RE"] }}</td>
         </tr>
-        <tr>
-          <td class="has-text-weight-bold">TSD</td>
-          <td align="right">{{ info["TSD"] }}</td>
+        <tr v-for="(value, key) in info.info" :key="key">
+          <td class="has-text-weight-bold">{{ key }}</td>
+          <td
+            align="right"
+            style="max-width: 300px;overflow: hidden;text-overflow: ellipsis;;white-space: nowrap;"
+          >{{ value }}</td>
         </tr>
       </tbody>
     </table>

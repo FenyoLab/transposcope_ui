@@ -16,6 +16,7 @@
 </template>
 
 <script>
+/*eslint no-console: ["error", {allow: ["warn", "error"]}] */
 const axios = require("axios");
 const { RemoteFile } = require("generic-filehandle");
 const { IndexedCramFile, CraiIndex } = require("@gmod/cram");
@@ -90,11 +91,11 @@ export default {
                   "<span " +
                   (this.meStrand == "+" ? refClass : meClass) +
                   ">" +
-                  s.slice(0, this.readLength + 50) +
+                  s.slice(0, this.readLength + 49) +
                   "</span><span " +
                   (this.meStrand == "+" ? meClass : refClass) +
                   ">" +
-                  s.slice(this.readLength + 50) +
+                  s.slice(this.readLength + 49) +
                   "<span>";
               });
           });
@@ -122,11 +123,11 @@ export default {
                   "<span " +
                   (this.meStrand == "+" ? meClass : refClass) +
                   ">" +
-                  s.slice(0, this.readLength + 50) +
+                  s.slice(0, this.readLength + 49) +
                   "</span><span " +
                   (this.meStrand == "+" ? refClass : meClass) +
                   ">" +
-                  s.slice(this.readLength + 50) +
+                  s.slice(this.readLength + 49) +
                   "<span>";
               });
           });
@@ -136,25 +137,22 @@ export default {
   },
   watch: {
     locus: function() {
-      console.log("updating plot", this.locus);
       if (this.locus) {
         let fileError = null;
         axios
           .get(this.publicPath + `data/${this.group}/meta/${this.locus}.json`)
           .then(response => {
-            console.log("locus changed", response.data);
             // TODO: These should be precalculated
             this.meStrand = response.data.me_strand;
             this.aesthetics = response.data.regions;
             let stats = {
               chrom: "undefined",
-              fivePTS: "undefined",
-              fivePTE: "undefined",
+              fivePTS: "N/A",
+              fivePTE: "N/A",
               threePTS: "undefined",
               threePTE: "undefined",
               L1RS: "undefined",
-              L1RE: "undefined",
-              TSD: "undefined"
+              L1RE: "undefined"
             };
             if (
               response.data.target_5p != null &&
@@ -216,7 +214,7 @@ export default {
               stats.threePTE = response.data.target_3p[1];
               stats.L1RS = response.data.me_start;
               stats.L1RE = response.data.me_end;
-              stats.TSD = response.data.info.TSD;
+              stats.info = response.data.info;
             }
             stats.chrom = response.data.chromosome;
             this.readLength = response.data.read_length || 500;
@@ -287,7 +285,7 @@ export default {
                   this.histData = data;
                 })
                 .catch(error => {
-                  console.error(error);
+                  console.error("Error loading cram record", error);
                 })
                 .finally(() => {
                   this.$root.$emit("resetView");
