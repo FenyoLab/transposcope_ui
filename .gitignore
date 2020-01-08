@@ -5,3 +5,4 @@
 /test
 .tox/
 transposcope_pkg.egg-info/
+node_modules
