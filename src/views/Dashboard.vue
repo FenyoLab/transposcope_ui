@@ -1,40 +1,16 @@
 <template>
-  <section
-    class="section"
-    style="height:calc(100vh - 52px)"
-  >
-    <div
-      class="columns has-text-grey-dark"
-      style="height: 100%"
-    >
+  <section class="section" style="height:calc(100vh - 52px)">
+    <div class="columns has-text-grey-dark" style="height: 100%">
       <!--TODO: Move this div to a separate component -->
-      <div
-        class="column"
-        style="height: 100%;width:100%"
-      >
-        <Visualization
-          style="height: 60%"
-          :group="group"
-          :locus="locus"
-        />
+      <div class="column" style="height: 100%;width:100%">
+        <Visualization style="height: 60%" :group="group" :locus="locus" />
 
-        <div
-          class="columns"
-          style="height:40%"
-        >
-          <div
-            class="column is-two-thirds"
-            style="height: 100%"
-          >
+        <div class="columns" style="height:40%">
+          <div class="column is-two-thirds" style="height: 100%">
             <BaseUI />
-
           </div>
           <div class="column">
-            <BaseTable
-              :group="group"
-              :locus="locus"
-            />
-
+            <BaseTable :group="group" :locus="locus" />
           </div>
         </div>
       </div>
@@ -43,11 +19,9 @@
   </section>
 </template>
 <script>
-/* eslint-disable */
 import BaseTable from "../components/table/BaseTable.vue";
 import BaseUI from "../components/ui/BaseUI.vue";
 import Visualization from "../components/plot/BasePlot.vue";
-import NavBar from "../components/navbar/BaseNavbar.vue";
 
 const _ = require("lodash");
 
@@ -56,39 +30,32 @@ export default {
   data() {
     return {
       locus: "",
-      // group: "ungrouped/ungrouped/melt_test",
       group: ""
     };
   },
   components: {
     BaseUI,
     BaseTable,
-    Visualization,
-    NavBar
+    Visualization
   },
   mounted() {
     this.group = _.join(_.values(this.$route.params), "/");
-    console.log(this.group);
     if (this.$route.query.locus)
       this.locus = this.$route.query.locus.replace("-", "_");
-    console.log(this.$route);
   },
   methods: {
     changeLoci(locus) {
-      // TODO: change this back to :
       this.locus = locus.replace(":", "_");
     }
   },
   watch: {
     $route: function() {
       this.group = _.join(_.values(this.$route.params), "/");
-      console.log(this.group);
       if (this.$route.query.locus)
         this.locus = this.$route.query.locus.replace("-", "_");
       else {
         this.locus = "";
       }
-      console.log(this.$route);
     }
   }
 };

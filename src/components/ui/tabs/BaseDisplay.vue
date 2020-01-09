@@ -2,19 +2,10 @@
   <div>
     <div class="control">
       <label class="radio">
-        <input
-          type="radio"
-          value="histogram"
-          v-model="currentView"
-          name="type"
-          checked
-        />
+        <input type="radio" value="histogram" v-model="currentView" name="type" checked />
         Histograms
       </label>
-      <label
-        class="radio"
-        :disabled="isTipseq"
-      >
+      <label class="radio" :disabled="isTipseq">
         <input
           type="radio"
           value="5p_junction"
@@ -25,12 +16,7 @@
         Mobile Element 5' Junction Reads
       </label>
       <label class="radio">
-        <input
-          type="radio"
-          value="3p_junction"
-          v-model="currentView"
-          name="type"
-        />
+        <input type="radio" value="3p_junction" v-model="currentView" name="type" />
         Mobile Element 3' Junction Reads
       </label>
     </div>
@@ -40,28 +26,22 @@
 <script>
 export default {
   name: "Display",
-  props: {},
+  props: {
+    type: String
+  },
   data() {
     return {
-      currentView: "histogram",
-      type: ""
+      currentView: "histogram"
     };
   },
   mounted() {
     this.$root.$on("resetView", () => {
       this.currentView = "histogram";
     });
-    this.$root.$on("setType", type => {
-      console.log("SETTING TYPE");
-      this.type = type;
-    });
   },
   watch: {
     currentView() {
       this.$root.$emit("updatedView", this.currentView);
-    },
-    type() {
-      console.log(this.type);
     }
   },
   computed: {

@@ -20,6 +20,7 @@
           {{ "(" + Math.floor(100 * (value / hoverPointStats.total||0)) + "%)" }}
         </p>
         <p>Total: {{ hoverPointStats.total }}</p>
+        <p>x: {{ hoverPointStats.key }}</p>
       </div>
     </article>
     <svg :width="width" :height="height">
@@ -358,7 +359,6 @@ export default {
       this.height = this.$el.offsetHeight;
     },
     initialize() {
-      console.log("initializing svg");
       this.selections.svg = d3.select(this.$el.querySelector("svg"));
 
       this.selections.svg
